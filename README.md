@@ -42,7 +42,7 @@ _Datasets:_
 
 ### Project's folder structure
 - `notebooks/`: the Jupyter/Colab notebooks (`.ipynb`).
-- `modules/`: 
+- `modules/`: the nessesary Python module files (`.py`).
 - `report/`: the report files and source LaTeX code (`.pdf` and `.tex`).
 - `features/`: the extracted feature vectors (`.npy` and `.h5`).
 
