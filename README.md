@@ -5,7 +5,7 @@ Machine Learning (CO3117) assignments, group TN01, team SEML31.
 ## 1. General information
 - Course name: Machine Learning (CO3117).
 - Semester 251, academic year: 2025-2026.
-- Advisor: Lê Thành Sách, email: ltsach@hcmut.edu.vn.
+- Instructor: Lê Thành Sách, email: ltsach@hcmut.edu.vn.
 - Team members:
 
   | Name               | Student ID | Email address                   |
