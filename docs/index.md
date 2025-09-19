@@ -24,21 +24,21 @@ Machine Learning (CO3117) assignments, group TN01, team SEML31.
 ### How to run the notebooks
 Open the notebooks via Google Colab, then click `Run All`. The whole notebook should take a few minutes to execute.
 
-_Requirements (taken from Google Colab default environment 2025-08-27):_ Python 3.12.11
+- _Requirements (taken from Google Colab default environment 2025-08-27):_ Python 3.12.11
 
-| package      | version     |
-|--------------|-------------|
-| numpy        | 2.0.2       |
-| pandas       | 2.2.2       |
-| scikit-learn | 1.6.1       |
-| matplotlib   | 3.10.0      |
-| seaborn      | 0.13.2      |
-| torch        | 2.8.0+cu126 |
+  | package      | version     |
+  |--------------|-------------|
+  | numpy        | 2.0.2       |
+  | pandas       | 2.2.2       |
+  | scikit-learn | 1.6.1       |
+  | matplotlib   | 3.10.0      |
+  | seaborn      | 0.13.2      |
+  | torch        | 2.8.0+cu126 |
 
-_Datasets:_
-- Tabular: [Rain in Australia](https://www.kaggle.com/datasets/jsphyg/weather-dataset-rattle-package)
-- Text: To do
-- Image: To do
+- _Datasets:_
+  - Tabular: [Rain in Australia](https://www.kaggle.com/datasets/jsphyg/weather-dataset-rattle-package)
+  - Text: To do
+  - Image: To do
 
 ### Project's folder structure
 - `notebooks/`: the Jupyter/Colab notebooks (`.ipynb`).
@@ -47,10 +47,13 @@ _Datasets:_
 - `features/`: the extracted feature vectors (`.npy` and `.h5`).
 
 ### Reports and Colab notebooks
-_Report:_ To do
+- _Report:_ To do
 
-_Notebooks:_ To do
-- Assignment 1 (Tabular):
-- Assignment 2 (Text):
-- Assignment 3 (Image):
-- Extended assignment ():
+- _Notebooks:_
+
+| Assignment | Content             | Dataset                                                                                    | Notebook source                 | Open in Google Colab                                                                                                                                                                                                               |
+|------------|---------------------|--------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1          | Tabular data        | [Rain in Australia](https://www.kaggle.com/datasets/jsphyg/weather-dataset-rattle-package) | `/notebooks/assignment-1.ipynb` | <a target="_blank" href="https://colab.research.google.com/github/phamtranminhtri/SEML31/blob/main/notebooks/assignment-1.ipynb">   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/> </a> |
+| 2          | Text data           |                                                                                            |                                 |                                                                                                                                                                                                                                    |
+| 3          | Image data          |                                                                                            |                                 |                                                                                                                                                                                                                                    |
+| Extension  | Hidden Markov model |                                                                                            |                                 |                                                                                                                                                                                                                                    |
