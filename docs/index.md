@@ -1,4 +1,7 @@
 # SEML31
+
+> **[GitHub repository](https://github.com/phamtranminhtri/SEML31)**
+
 Ho Chi Minh City University of Technology (HCMUT) – Vietnam National University-Ho Chi Minh City (VNU-HCMC).  
 Machine Learning (CO3117) assignments, group TN01, team SEML31.
 
