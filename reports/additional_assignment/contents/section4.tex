@@ -1,0 +1,51 @@
+\section{Kết luận}
+
+\subsection{Tóm tắt công việc}
+Báo cáo này trình bày một hệ thống hoàn chỉnh cho bài toán nhận diện hợp âm từ tín hiệu âm thanh sử dụng Hidden Markov Model và thuật toán Viterbi. Các đóng góp chính bao gồm:
+
+\begin{enumerate}
+    \item \textbf{Pipeline xử lý tín hiệu số}: Từ tín hiệu âm thanh thô đến đặc trưng chroma được chuẩn hoá, với lựa chọn tham số DSP hợp lý (sample rate 22050 Hz, hop length 512).
+    
+    \item \textbf{Mô hình hoá HMM supervised}: Ước lượng tham số HMM từ dữ liệu có nhãn, sử dụng GMM với 40 thành phần để mô hình hoá emission probabilities.
+    
+    \item \textbf{Giải mã Viterbi hiệu quả}: Implementation thuật toán Viterbi trong miền log-probability để tránh underflow và tìm chuỗi hợp âm có xác suất cao nhất.
+    
+    \item \textbf{Thiết kế module tái sử dụng}: Lớp \texttt{AudioProcessor} đóng gói các chức năng trích xuất và căn chỉnh, dễ dàng áp dụng cho file mới.
+\end{enumerate}
+
+\subsection{Ý nghĩa và ứng dụng}
+Hệ thống này có thể được ứng dụng trong:
+\begin{itemize}
+    \item \textbf{Phân tích âm nhạc tự động}: Hỗ trợ nhạc sĩ, nhà nghiên cứu âm nhạc học phân tích cấu trúc hợp âm của bản nhạc.
+    \item \textbf{Hệ thống học nhạc}: Tự động tạo chord chart cho người học guitar, piano.
+    \item \textbf{Tạo nhạc tự động (music generation)}: Cung cấp thông tin hợp âm làm điều kiện cho mô hình sinh nhạc.
+    \item \textbf{Music Information Retrieval (MIR)}: Làm nền tảng cho các tác vụ như tìm kiếm bài hát theo progression, phân loại thể loại dựa trên harmony.
+\end{itemize}
+
+\subsection{Bài học kinh nghiệm}
+\begin{itemize}
+    \item \textbf{Tầm quan trọng của tham số DSP}: Lựa chọn sample rate và hop length ảnh hưởng trực tiếp đến chất lượng đặc trưng và hiệu suất tính toán. Cần cân bằng giữa độ phân giải và chi phí.
+    
+    \item \textbf{Trade-off giữa độ phức tạp mô hình và dữ liệu}: Không gian trạng thái lớn hơn (nhiều loại hợp âm hơn) yêu cầu dữ liệu huấn luyện nhiều hơn để tránh overfitting.
+    
+    \item \textbf{Smoothing quan trọng}: Thêm giá trị smoothing nhỏ ($10^{-5}$) vào ma trận chuyển trạng thái giúp tránh xác suất bằng 0, cải thiện độ ổn định của mô hình.
+    
+    \item \textbf{GMM hiệu quả cho emission modeling}: So với single Gaussian, GMM linh hoạt hơn trong việc mô hình hoá phân phối phức tạp của chroma features.
+\end{itemize}
+
+\subsection{Hướng phát triển tương lai}
+Các hướng nghiên cứu tiếp theo có thể bao gồm:
+\begin{enumerate}
+    \item \textbf{Kết hợp deep learning}: Sử dụng Convolutional Neural Network (CNN) hoặc Recurrent Neural Network (RNN) để học biểu diễn từ spectrogram, sau đó dùng HMM hoặc CRF (Conditional Random Field) để làm mịn chuỗi.
+    
+    \item \textbf{Transfer learning}: Pre-train mô hình trên dataset lớn (ví dụ: McGill Billboard, Isophonics), sau đó fine-tune cho domain cụ thể.
+    
+    \item \textbf{Multi-resolution analysis}: Kết hợp thông tin từ nhiều hop length khác nhau để bắt cả biến đổi nhanh và xu hướng dài hạn.
+    
+    \item \textbf{Đánh giá định lượng chặt chẽ}: Thiết lập protocol đánh giá với train/validation/test split, các metric chuẩn (frame-level accuracy, segment-level precision/recall), so sánh với baseline.
+    
+    \item \textbf{Real-time implementation}: Tối ưu hoá code (ví dụ: dùng Cython, numba) để xử lý streaming audio với độ trễ thấp.
+\end{enumerate}
+
+\subsection{Lời kết}
+Báo cáo này đã trình bày chi tiết một cách tiếp cận cổ điển nhưng hiệu quả cho bài toán nhận diện hợp âm, từ lý thuyết xử lý tín hiệu số, mô hình Markov ẩn, đến implementation cụ thể với Python và các thư viện mã nguồn mở. Mặc dù có những hạn chế, phương pháp HMM/GMM vẫn là nền tảng quan trọng, giúp hiểu sâu về bản chất của bài toán và làm tiền đề cho các phương pháp hiện đại hơn. Hy vọng tài liệu này hữu ích cho người đọc quan tâm đến lĩnh vực Music Information Retrieval và xử lý tín hiệu âm thanh.

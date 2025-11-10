@@ -1,0 +1,189 @@
+\section{Giới thiệu}
+
+Phần này tóm tắt nhanh nội dung và phương pháp được triển khai trong bộ mã tham khảo (notebook kèm theo) cho bài toán nhận diện hợp âm từ file âm thanh.
+
+\subsection{Bối cảnh}
+Nhận diện hợp âm (chord recognition) là một bài toán thường gặp trong xử lý tín hiệu âm thanh và âm nhạc tính toán. Mục tiêu là dự đoán chuỗi hợp âm xuất hiện theo thời gian trên một bản nhạc. Ứng dụng bao gồm phân tích âm nhạc, tạo nhạc tự động, và hỗ trợ học nhạc.
+
+\subsection{Tổng quan phương pháp}
+Bộ mã tham khảo thực hiện qui trình chính sau:
+\begin{itemize}
+	\item Tiền xử lý âm thanh và trích xuất đặc trưng Chroma (chroma features) từ các file âm thanh bằng thư viện \texttt{librosa}.
+	\item Chuẩn hoá và ghép nhãn hợp âm (annotation) từ file .lab sang khung thời gian của các frame Chroma.
+	\item Gom nhãn về tập trạng thái rút gọn gồm 24 hợp âm cơ bản (12 nốt x {maj,min}) cùng trạng thái "No-Chord" và "Complex" cho những hợp âm không trực tiếp ánh xạ.
+	\item Tổng hợp dữ liệu từ nhiều bài hát (concatenate) để tạo gói dữ liệu huấn luyện (X: chuỗi quan sát chroma, y: chuỗi trạng thái, lengths: số frame mỗi bài).
+	\item Tính toán tham số HMM: phân phối ban đầu $\pi$, ma trận chuyển trạng thái $A$ (với làm mịn) và mô hình phát xạ B được ước lượng bằng các Gaussian Mixture Models (GMM) cho mỗi trạng thái.
+	\item Sử dụng thuật toán Viterbi để suy đoán chuỗi hợp âm cho file âm thanh mới dựa trên tham số HMM đã huấn luyện.
+\end{itemize}
+
+\subsection{Xử lý tín hiệu số (DSP) trong trích xuất đặc trưng}
+Phần này trình bày chi tiết cách các kỹ thuật xử lý tín hiệu số được áp dụng trong code để chuyển đổi tín hiệu âm thanh thô thành các đặc trưng phù hợp cho mô hình học máy.
+
+\subsubsection{Sample Rate (Tần số lấy mẫu)}
+\textbf{Sample Rate} là số lượng mẫu (samples) được ghi lại mỗi giây từ tín hiệu âm thanh liên tục. Trong code, giá trị được thiết lập là:
+\begin{verbatim}
+SAMPLE_RATE = 22050  # Hz (samples/second)
+\end{verbatim}
+
+\textbf{Ý nghĩa và lựa chọn:}
+\begin{itemize}
+    \item Theo định lý Nyquist-Shannon, để tái tạo hoàn hảo tín hiệu gốc, tần số lấy mẫu phải ít nhất gấp đôi tần số cao nhất trong tín hiệu. Với $f_s = 22050$ Hz, ta có thể biểu diễn chính xác các tần số lên đến $\frac{22050}{2} = 11025$ Hz.
+    \item Tai người nghe được từ khoảng 20 Hz đến 20 kHz. Tuy nhiên, với phân tích âm nhạc, đặc biệt là nhận diện hợp âm, các thành phần tần số quan trọng thường nằm dưới 10 kHz. Do đó, 22.05 kHz là một lựa chọn phù hợp giúp giảm khối lượng dữ liệu (so với 44.1 kHz chuẩn CD) mà vẫn giữ được thông tin âm nhạc cần thiết.
+    \item Khi gọi \texttt{librosa.load(audio\_path, sr=22050)}, nếu file âm thanh gốc có sample rate khác (ví dụ 44.1 kHz), \texttt{librosa} sẽ tự động resample (lấy mẫu lại) về 22050 Hz.
+\end{itemize}
+
+\textbf{Ảnh hưởng đến pipeline:}
+\begin{itemize}
+    \item Sample rate quyết định độ phân giải tần số của tín hiệu số. 
+    \item Nó ảnh hưởng trực tiếp đến số lượng mẫu trong tín hiệu: với một bài hát dài $T$ giây, số mẫu là $N = T \times f_s$.
+    \item Ví dụ: một bài hát 3 phút (180 giây) sẽ có $180 \times 22050 = 3{,}969{,}000$ mẫu.
+\end{itemize}
+
+\subsubsection{Hop Length (Độ dịch chuyển cửa sổ)}
+\textbf{Hop Length} xác định số mẫu mà cửa sổ phân tích dịch chuyển giữa các frame liên tiếp khi tính toán biến đổi thời gian-tần số (như STFT hoặc CQT). Trong code:
+\begin{verbatim}
+HOP_LENGTH = 512  # samples
+\end{verbatim}
+
+\textbf{Ý nghĩa vật lý:}
+\begin{itemize}
+    \item Hop length quyết định độ phân giải thời gian của các đặc trưng được trích xuất. 
+    \item Với $h = 512$ mẫu và $f_s = 22050$ Hz, khoảng thời gian giữa hai frame liên tiếp là:
+    \begin{equation}
+    \Delta t = \frac{h}{f_s} = \frac{512}{22050} \approx 0.0232 \text{ giây} \approx 23.2 \text{ ms}
+    \end{equation}
+    \item Do đó, ta thu được khoảng $\frac{1}{0.0232} \approx 43$ frame mỗi giây (như ghi chú trong code: \texttt{\# (\textasciitilde43 frames/sec)}).
+\end{itemize}
+
+\textbf{Trade-off giữa độ phân giải thời gian và tần số:}
+\begin{itemize}
+    \item \textit{Hop length nhỏ} (ví dụ 128): Nhiều frame hơn mỗi giây $\Rightarrow$ độ phân giải thời gian cao (theo dõi biến đổi nhanh), nhưng tăng khối lượng tính toán và có thể gây nhiễu do các frame chồng lấp nhiều.
+    \item \textit{Hop length lớn} (ví dụ 2048): Ít frame hơn $\Rightarrow$ giảm tính toán, nhưng mất mát thông tin biến đổi nhanh (độ phân giải thời gian thấp).
+    \item Giá trị 512 là một cân bằng phổ biến: đủ chi tiết để bắt được sự thay đổi hợp âm (thường diễn ra trong vài trăm ms) mà không quá nặng về tính toán.
+\end{itemize}
+
+\subsubsection{Quá trình trích xuất Chroma từ tín hiệu âm thanh}
+Trong phương thức \texttt{extract\_chroma} của lớp \texttt{AudioProcessor}, các bước DSP chính như sau:
+
+\textbf{Bước 1: Nạp và resample tín hiệu}
+\begin{verbatim}
+y, sr = librosa.load(audio_path, sr=self.sr)
+\end{verbatim}
+\begin{itemize}
+    \item \texttt{y}: mảng numpy 1D chứa các giá trị biên độ của tín hiệu âm thanh (thường được chuẩn hoá trong khoảng $[-1, 1]$).
+    \item Chiều dài: $N = \text{len}(y)$ mẫu.
+\end{itemize}
+
+\textbf{Bước 2: Tính Chromagram bằng CQT (Constant-Q Transform)}
+\begin{verbatim}
+chroma = librosa.feature.chroma_cqt(y=y, sr=sr, 
+                                     hop_length=self.hop_length).T
+\end{verbatim}
+\begin{itemize}
+    \item \textbf{CQT} là một biến đổi thời gian-tần số tương tự STFT nhưng có độ phân giải tần số theo thang logarit (phù hợp với âm nhạc vì các nốt nhạc cách nhau theo tỷ lệ logarit).
+    \item Chromagram tập hợp năng lượng của tất cả các octave về 12 lớp âm (pitch class): C, C\#, D, ..., B. Mỗi hàng của chroma vector biểu diễn năng lượng tương đối của 12 nốt nhạc tại một frame thời gian.
+    \item Đầu ra của \texttt{chroma\_cqt}: ma trận $(12 \times M)$ với $M = \lfloor \frac{N - n_{\text{fft}}}{h} \rfloor + 1 \approx \frac{N}{h}$ là số frame.
+    \item Phép chuyển vị \texttt{.T} biến đổi thành $(M \times 12)$ để mỗi hàng là một quan sát (frame).
+\end{itemize}
+
+\textbf{Bước 3: Chuẩn hoá Chroma}
+\begin{verbatim}
+chroma_sum = np.sum(chroma, axis=1, keepdims=True)
+chroma_sum[chroma_sum == 0] = 1  # Tránh chia cho 0
+chroma_features = chroma / chroma_sum
+\end{verbatim}
+\begin{itemize}
+    \item Mỗi vector chroma (hàng) được chuẩn hoá sao cho tổng các thành phần bằng 1. Điều này giúp đặc trưng không bị ảnh hưởng bởi độ lớn tổng thể của tín hiệu (loudness).
+    \item Kết quả: mỗi frame có vector 12 chiều biểu diễn \textit{phân phối xác suất} của 12 pitch class.
+\end{itemize}
+
+\subsubsection{Căn chỉnh nhãn với frame}
+Sau khi có ma trận chroma $(M \times 12)$, cần ánh xạ nhãn hợp âm (từ file \texttt{.lab}) sang từng frame:
+\begin{verbatim}
+frame_times = librosa.frames_to_time(np.arange(n_frames), 
+                                      sr=self.sr, 
+                                      hop_length=self.hop_length)
+\end{verbatim}
+\begin{itemize}
+    \item Hàm \texttt{frames\_to\_time} tính thời gian (tính bằng giây) của tâm mỗi frame:
+    \begin{equation}
+    t_i = \frac{i \times h}{f_s}, \quad i = 0, 1, \ldots, M-1
+    \end{equation}
+    \item File \texttt{.lab} chứa các dòng dạng: \texttt{start\_time end\_time chord\_label}.
+    \item Với mỗi khoảng thời gian $[\text{start}, \text{end})$ trong file nhãn, ta tìm các frame có $t_i \in [\text{start}, \text{end})$ và gán nhãn tương ứng.
+\end{itemize}
+
+\textbf{Ví dụ minh hoạ:}
+\begin{itemize}
+    \item Giả sử một đoạn hợp âm C:maj kéo dài từ giây thứ 0.5 đến 2.0.
+    \item Với hop length 512 và sample rate 22050, frame thứ $i$ tương ứng thời gian $t_i = 0.0232i$ giây.
+    \item Các frame có index từ $\lceil 0.5/0.0232 \rceil = 22$ đến $\lfloor 2.0/0.0232 \rfloor = 86$ sẽ được gán nhãn \texttt{C:maj}.
+\end{itemize}
+
+\subsection{Triển khai chi tiết và các lựa chọn kỹ thuật}
+Một số điểm kỹ thuật đáng chú ý trong notebook:
+
+\subsubsection{Kiến trúc class AudioProcessor}
+\begin{itemize}
+    \item \textbf{AudioProcessor}: lớp xử lý âm thanh được khởi tạo với hai tham số DSP chính:
+    \begin{verbatim}
+    def __init__(self, sr: int = 22050, hop_length: int = 512)
+    \end{verbatim}
+    \item Phương thức \texttt{extract\_chroma(audio\_path)}: trích xuất đặc trưng chroma độc lập, trả về ma trận $(M \times 12)$.
+    \item Phương thức \texttt{extract\_and\_align(audio\_path, lab\_path)}: kết hợp trích xuất chroma và căn chỉnh nhãn, trả về tuple \texttt{(chroma\_features, aligned\_labels\_id)}.
+    \item Thiết kế module này cho phép tái sử dụng dễ dàng: cùng một instance \texttt{AudioProcessor} có thể xử lý nhiều file với tham số DSP nhất quán.
+\end{itemize}
+
+\subsubsection{Đơn giản hoá không gian trạng thái}
+\begin{itemize}
+    \item Nhãn gốc trong dataset có thể rất đa dạng (ví dụ: \texttt{C:maj7}, \texttt{Db:min}, \texttt{G:sus4}, \texttt{F\#:dim}).
+    \item Phương thức \texttt{simplify\_chord} ánh xạ về 26 trạng thái:
+    \begin{itemize}
+        \item 24 hợp âm cơ bản: 12 nốt $\times$ \{major, minor\}
+        \item Trạng thái \texttt{N}: không có hợp âm (silence, noise)
+        \item Trạng thái \texttt{Complex}: các hợp âm diminished, augmented, suspended không thể phân loại đơn giản
+    \end{itemize}
+    \item Ánh xạ enharmonic: Db $\rightarrow$ C\#, Eb $\rightarrow$ D\#, Gb $\rightarrow$ F\#, Ab $\rightarrow$ G\#, Bb $\rightarrow$ A\# để tránh trùng lặp.
+    \item Lý do: giảm độ phức tạp mô hình (26 trạng thái thay vì hàng trăm), giúp GMM huấn luyện tốt hơn với dữ liệu hạn chế.
+\end{itemize}
+
+\subsubsection{Tính toán tham số HMM}
+\begin{itemize}
+    \item \textbf{Ma trận chuyển trạng thái $A$}: được khởi tạo với giá trị smoothing nhỏ ($10^{-5}$) để tránh xác suất bằng 0 (Laplace smoothing), sau đó cộng dồn số lần chuyển từ trạng thái $i$ sang $j$ và chuẩn hoá theo hàng.
+    \item \textbf{Phân phối ban đầu $\pi$}: đếm trạng thái đầu tiên của mỗi bài hát, cộng dồn và chuẩn hoá.
+    \item \textbf{Mô hình phát xạ $B$}: mỗi trạng thái được mô hình hoá bởi một GMM với 40 thành phần Gaussian (có thể điều chỉnh):
+    \begin{itemize}
+        \item GMM cho phép mô hình hoá phân phối phức tạp của chroma vector trong mỗi trạng thái (do có nhiều cách chơi cùng một hợp âm, âm sắc nhạc cụ khác nhau, nhiễu).
+        \item Covariance type \texttt{full}: ma trận hiệp phương sai đầy đủ để bắt được tương quan giữa các pitch class.
+        \item Nếu một trạng thái không có đủ quan sát (ví dụ hợp âm hiếm), GMM không được huấn luyện (gán \texttt{None}) để tránh overfitting.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Thuật toán Viterbi trong miền log}
+\begin{itemize}
+    \item Viterbi tìm chuỗi trạng thái có xác suất cao nhất $\arg\max_{s_1, \ldots, s_M} P(s_1, \ldots, s_M \mid x_1, \ldots, x_M)$.
+    \item Để tránh underflow khi nhân nhiều xác suất nhỏ, tất cả tính toán được thực hiện trong miền log:
+    \begin{equation}
+    \log P(s_1, \ldots, s_M, x_1, \ldots, x_M) = \log \pi_{s_1} + \sum_{t=1}^{M-1} \log A_{s_t, s_{t+1}} + \sum_{t=1}^{M} \log B_{s_t}(x_t)
+    \end{equation}
+    \item GMM cung cấp \texttt{score\_samples()} trả về log-likelihood trực tiếp.
+    \item Ma trận $V[t, j]$ lưu log-xác suất cao nhất để đạt trạng thái $j$ tại thời điểm $t$.
+\end{itemize}
+
+\subsubsection{Ảnh hưởng của tham số DSP đến hiệu năng}
+\begin{itemize}
+    \item \textbf{Sample rate cao hơn} (ví dụ 44.1 kHz): tăng độ chính xác tần số nhưng tăng gấp đôi kích thước dữ liệu và thời gian tính toán mà lợi ích cho nhận diện hợp âm không đáng kể.
+    \item \textbf{Hop length nhỏ hơn} (ví dụ 256): độ phân giải thời gian cao hơn (khoảng 86 frame/giây), có thể bắt được sự chuyển hợp âm nhanh hơn nhưng tăng số frame cần xử lý trong Viterbi (độ phức tạp $O(M \times N_{\text{states}}^2)$).
+    \item \textbf{Số thành phần GMM}: 40 thành phần là kết quả sau khi thử nghiệm với BIC/AIC (mã tham khảo có phần comment về grid search). Quá ít thành phần dẫn đến underfitting, quá nhiều dẫn đến overfitting và tăng thời gian huấn luyện.
+\end{itemize}
+
+\subsection{Ghi chú và hướng dẫn chạy}
+\begin{itemize}
+	\item Notebook tham khảo: file notebook đính kèm (tên file trong phần đính kèm). Notebook chứa cả phần tiền xử lý, huấn luyện GMM, tính toán tham số HMM, và ví dụ áp dụng Viterbi.
+	\item Để tái tạo kết quả trên máy của bạn: chuẩn bị thư mục chứa các file âm thanh (.wav/.mp3) và file nhãn (.lab) tương ứng; chỉnh biến đường dẫn trong notebook; chạy tuần tự các cell theo thứ tự (extract -> aggregate -> train -> predict).
+	\item Nếu muốn, tôi có thể chèn một hình minh hoạ (ví dụ heatmap chroma hoặc sơ đồ ma trận A) và/hoặc thêm tham chiếu BibTeX cho các thư viện (librosa, sklearn). Hãy cho biết yêu cầu cụ thể (kích thước, vị trí ảnh, tên file ảnh) nếu cần.
+\end{itemize}
+
+\subsection{Kết luận ngắn}
+Quy trình trong notebook là một pipeline điển hình cho bài toán nhận diện hợp âm: từ trích xuất chroma đến mô hình hóa phát xạ bằng GMM và suy giải bằng HMM/Viterbi. Các phần tiếp theo sẽ trình bày chi tiết về cơ sở lý thuyết HMM, thuật toán Viterbi, kết quả thực nghiệm và đánh giá.
+

@@ -1,0 +1,131 @@
+\section{Kết quả và đánh giá}
+
+\subsection{Cấu hình thực nghiệm}
+
+\subsubsection{Dataset}
+\begin{itemize}
+    \item Dữ liệu huấn luyện: Tập các file âm thanh (.mp3/.wav) kèm file annotation (.lab)
+    \item Mỗi file .lab chứa thông tin: \texttt{start\_time end\_time chord\_label}
+    \item Sau khi aggregate, dữ liệu được lưu trong file \texttt{hmm\_data\_package.npz} gồm:
+    \begin{itemize}
+        \item \texttt{X\_data}: Ma trận chroma $(M_{total} \times 12)$, với $M_{total}$ là tổng số frame từ tất cả các bài
+        \item \texttt{y\_data}: Vector nhãn $(M_{total},)$ chứa state ID
+        \item \texttt{lengths}: Mảng chứa số frame của từng bài, để phân tách các chuỗi độc lập
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Tham số mô hình}
+\begin{itemize}
+    \item Số trạng thái HMM: $N = 26$ (24 hợp âm + N + Complex)
+    \item Sample rate: 22050 Hz
+    \item Hop length: 512 samples ($\approx$ 23.2 ms, $\approx$ 43 frames/giây)
+    \item Số thành phần GMM mỗi trạng thái: 40 (có thể điều chỉnh dựa trên BIC/AIC analysis)
+    \item Covariance type: \texttt{full}
+\end{itemize}
+
+\subsection{Quy trình huấn luyện}
+
+\subsubsection{Bước 1: Trích xuất và căn chỉnh}
+\begin{verbatim}
+all_chroma_vectors, all_label_vectors = 
+    aggregate_all_data(DATA_DIR, audio_processor)
+\end{verbatim}
+Kết quả: Danh sách các cặp (chroma features, aligned labels) cho mỗi bài hát.
+
+\subsubsection{Bước 2: Tính toán tham số HMM}
+\begin{itemize}
+    \item \textbf{Ma trận $A$}: Đếm số lần chuyển trạng thái, thêm smoothing $10^{-5}$, chuẩn hoá
+    \item \textbf{Vector $\pi$}: Đếm trạng thái đầu tiên của mỗi bài, chuẩn hoá
+    \item \textbf{GMM cho mỗi trạng thái}: Tập hợp tất cả chroma vector thuộc trạng thái đó, huấn luyện GMM
+\end{itemize}
+
+Output:
+\begin{verbatim}
+INITIAL_STATE_DISTRIBUTION shape: (26,)
+TRANSITION_MATRIX shape: (26, 26)
+EMISSION_MODELS: 26 GMM models
+\end{verbatim}
+
+\subsection{Quy trình dự đoán}
+
+Với một file âm thanh mới (không có nhãn):
+
+\subsubsection{Bước 1: Trích xuất chroma}
+\begin{verbatim}
+features = audio_processor.extract_chroma(audio_file)
+\end{verbatim}
+Output: Ma trận chroma $(M \times 12)$ với $M$ là số frame.
+
+\subsubsection{Bước 2: Áp dụng Viterbi}
+\begin{verbatim}
+predicted_state_ids = viterbi(features, 
+                               INITIAL_STATE_DISTRIBUTION, 
+                               TRANSITION_MATRIX, 
+                               EMISSION_MODELS)
+\end{verbatim}
+Output: Mảng state ID $(M,)$.
+
+\subsubsection{Bước 3: Chuyển đổi về nhãn hợp âm}
+\begin{verbatim}
+predicted_chords = [ID_TO_CHORD[state_id] 
+                    for state_id in predicted_state_ids]
+\end{verbatim}
+Output: Danh sách nhãn hợp âm (ví dụ: \texttt{['C:maj', 'C:maj', 'F:maj', ...]}).
+
+\subsubsection{Bước 4: Lưu kết quả}
+Mỗi frame tương ứng một nhãn, được ghi ra file \texttt{.txt}:
+\begin{verbatim}
+C:maj
+C:maj
+F:maj
+G:maj
+...
+\end{verbatim}
+
+Nếu muốn chuyển về dạng khoảng thời gian (segment), cần gom các frame liên tiếp có cùng nhãn và tính thời gian bằng công thức:
+\begin{equation}
+t_i = \frac{i \times \text{hop\_length}}{\text{sample\_rate}}
+\end{equation}
+
+\subsection{Phân tích kết quả}
+
+\subsubsection{Thống kê hợp âm dự đoán}
+Sau khi merge tất cả file dự đoán, notebook thực hiện phân tích đơn giản:
+\begin{itemize}
+    \item Đếm tần suất xuất hiện của mỗi hợp âm
+    \item Hiển thị top 10 hợp âm phổ biến nhất
+    \item Tổng số frame được phân loại
+\end{itemize}
+
+\textbf{Nhận xét chung:}
+\begin{itemize}
+    \item Các hợp âm phổ biến (C:maj, G:maj, F:maj, A:min, D:min) thường xuất hiện nhiều hơn
+    \item Trạng thái "N" (no-chord) có thể chiếm tỷ lệ đáng kể nếu có nhiều đoạn im lặng hoặc intro/outro
+    \item Trạng thái "Complex" xuất hiện ít hơn, phản ánh việc đơn giản hoá không gian trạng thái
+\end{itemize}
+
+\subsubsection{Ưu điểm của phương pháp}
+\begin{itemize}
+    \item \textbf{Tận dụng thông tin chuỗi}: HMM mô hình hoá tiến trình hợp âm tự nhiên (ví dụ: I-IV-V-I), giúp dự đoán mượt mà hơn so với phân loại độc lập từng frame.
+    \item \textbf{Xử lý nhiễu tốt}: GMM với nhiều thành phần có thể bắt được sự đa dạng của cùng một hợp âm trên nhiều nhạc cụ, phong cách khác nhau.
+    \item \textbf{Hiệu quả tính toán}: Viterbi với $O(T \times N^2)$ khả thi cho real-time hoặc near real-time với $N=26$ và $T$ vài nghìn frame.
+    \item \textbf{Supervised learning đơn giản}: Không cần thuật toán phức tạp như Baum-Welch, chỉ cần đếm tần suất từ dữ liệu có nhãn.
+\end{itemize}
+
+\subsubsection{Hạn chế và hướng cải thiện}
+\begin{itemize}
+    \item \textbf{Không gian trạng thái rút gọn}: 26 trạng thái không thể biểu diễn các hợp âm phức tạp (7th, 9th, sus4, dim, aug). Có thể mở rộng thêm trạng thái nhưng cần dữ liệu lớn hơn.
+    \item \textbf{Giả định Markov bậc 1}: Không bắt được cấu trúc dài hạn (ví dụ: verse-chorus pattern). Có thể sử dụng higher-order HMM hoặc kết hợp với mô hình cấu trúc âm nhạc.
+    \item \textbf{Phụ thuộc vào chất lượng annotation}: Nếu file .lab có lỗi hoặc không đồng nhất, tham số HMM sẽ bị ảnh hưởng.
+    \item \textbf{Tuning GMM components}: Số thành phần 40 là một lựa chọn ban đầu. Có thể tối ưu hoá bằng cross-validation hoặc grid search với BIC/AIC (code có phần comment về điều này).
+    \item \textbf{Đánh giá định lượng}: Hiện tại chưa có metric như accuracy, precision, recall trên test set. Nên tách train/test và tính các chỉ số đánh giá.
+\end{itemize}
+
+\subsection{Đề xuất cải tiến}
+\begin{enumerate}
+    \item \textbf{Mở rộng tập trạng thái}: Thêm các hợp âm 7th, suspended, diminished phổ biến (ví dụ: C:maj7, G:7, D:sus4).
+    \item \textbf{Duration modeling}: HMM chuẩn không mô hình hoá độ dài trạng thái (duration). Có thể dùng Hidden Semi-Markov Model (HSMM) để mô hình hoá rõ ràng thời gian tồn tại của mỗi hợp âm.
+    \item \textbf{Context features}: Thêm các đặc trưng ngoài chroma (ví dụ: MFCC, spectral contrast) để cải thiện khả năng phân biệt.
+    \item \textbf{Deep learning hybrid}: Kết hợp với mạng neural (ví dụ: CNN hoặc RNN) để học biểu diễn tốt hơn, sau đó dùng HMM để làm mịn chuỗi.
+    \item \textbf{Ensemble methods}: Kết hợp nhiều mô hình (HMM với tham số khác nhau, hoặc HMM + classification) để tăng độ tin cậy.
+\end{enumerate}
