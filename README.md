@@ -1,4 +1,6 @@
 # SEML31
+
+
 Ho Chi Minh City University of Technology (HCMUT) – Vietnam National University-Ho Chi Minh City (VNU-HCMC).  
 Machine Learning (CO3117) assignments, group TN01, team SEML31.
 
@@ -24,7 +26,7 @@ Machine Learning (CO3117) assignments, group TN01, team SEML31.
 ### How to run the notebooks
 Open the notebooks via Google Colab, then click `Run All`. The whole notebook should take a few minutes to execute.
 
-- _Requirements (taken from Google Colab default environment 2025-08-27):_ Python 3.12.11
+- _Requirements (taken from Google Colab default environment 2025-10-14):_ Python 3.12.12
 
   | package      | version     |
   |--------------|-------------|
@@ -37,8 +39,8 @@ Open the notebooks via Google Colab, then click `Run All`. The whole notebook sh
 
 - _Datasets:_
   - Tabular: [Rain in Australia](https://www.kaggle.com/datasets/jsphyg/weather-dataset-rattle-package)
-  - Text: To do
-  - Image: To do
+  - Text: [Sentiment140 dataset with 1.6 million tweets](https://www.kaggle.com/datasets/kazanova/sentiment140)
+  - Image: [Cards Image Dataset-Classification](https://www.kaggle.com/datasets/gpiosenka/cards-image-datasetclassification)
 
 ### Project's folder structure
 - `notebooks/`: the Jupyter/Colab notebooks (`.ipynb`).
@@ -51,9 +53,9 @@ Open the notebooks via Google Colab, then click `Run All`. The whole notebook sh
 
 - _Notebooks:_
 
-| Assignment | Content             | Dataset                                                                                    | Notebook source                 | Open in Google Colab                                                                                                                                                                                                               |
-|------------|---------------------|--------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1          | Tabular data        | [Rain in Australia](https://www.kaggle.com/datasets/jsphyg/weather-dataset-rattle-package) | `/notebooks/assignment-1.ipynb` | <a target="_blank" href="https://colab.research.google.com/github/phamtranminhtri/SEML31/blob/main/notebooks/assignment-1.ipynb">   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/> </a> |
-| 2          | Text data           |                                                                                            |                                 |                                                                                                                                                                                                                                    |
-| 3          | Image data          |                                                                                            |                                 |                                                                                                                                                                                                                                    |
-| Extension  | Hidden Markov model |                                                                                            |                                 |                                                                                                                                                                                                                                    |
+| Assignment | Content             | Dataset                                                                                                           | Notebook source                 | Open in Google Colab                                                                                                                                                                                                               |
+|------------|---------------------|-------------------------------------------------------------------------------------------------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1          | Tabular data        | [Rain in Australia](https://www.kaggle.com/datasets/jsphyg/weather-dataset-rattle-package)                        | `/notebooks/assignment-1.ipynb` | <a target="_blank" href="https://colab.research.google.com/github/phamtranminhtri/SEML31/blob/main/notebooks/assignment-1.ipynb">   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/> </a> |
+| 2          | Text data           | [Sentiment140 dataset with 1.6 million tweets](https://www.kaggle.com/datasets/kazanova/sentiment140)             | `/notebooks/assignment-2.ipynb` | <a target="_blank" href="https://colab.research.google.com/github/phamtranminhtri/SEML31/blob/main/notebooks/assignment-2.ipynb">   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/> </a> |
+| 3          | Image data          | [Cards Image Dataset-Classification](https://www.kaggle.com/datasets/gpiosenka/cards-image-datasetclassification) | `/notebooks/assignment-3.ipynb` | <a target="_blank" href="https://colab.research.google.com/github/phamtranminhtri/SEML31/blob/main/notebooks/assignment-3.ipynb">   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/> </a> |
+| Extension  | Hidden Markov model |                                                                                                                   |                                 |                                                                                                                                                                                                                                    |
