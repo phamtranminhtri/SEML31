@@ -50,7 +50,6 @@ Open the notebooks via Google Colab, then click `Run All`. The whole notebook sh
 
 ### Reports and Colab notebooks
 - _Report:_ <a target="_blank" href="https://github.com/phamtranminhtri/SEML31/blob/d5b6518a542077f1c856ba698a7195eb2309bdf8/reports/additional_assignment/build/main.pdf">Please click here</a>
-Report: 
 - _Notebooks:_
 
 | Assignment | Content             | Dataset                                                                                                           | Notebook source                 | Open in Google Colab                                                                                                                                                                                                               |
