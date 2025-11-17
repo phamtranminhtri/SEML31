@@ -88,7 +88,7 @@ def plot_chord_distribution(chord_counts: pd.Series, top_n: int = 20) -> plt.Fig
     ax.set_title(f'Top {top_n} Most Common Chords', fontsize=15)
     ax.set_xlabel('Chord', fontsize=12)
     ax.set_ylabel('Count', fontsize=12)
-    ax.tick_params(axis='x', rotation=45, ha='right')
+    ax.tick_params(axis='x', rotation=45)
     
     plt.tight_layout()
     return fig
@@ -139,7 +139,7 @@ def plot_audio_visualizations(audio_file: str, sr: int = 22050) -> plt.Figure:
 
     fig, axes = plt.subplots(3, 1, figsize=(14, 10), sharex=True)
 
-    librosa.display.waveshow(y, sr=sr, ax=axes[0], color='#009999', x_axis='time')
+    librosa.display.waveshow(y, sr=sr, ax=axes[0], color='#009999', axis='time')
     axes[0].set_ylabel('Amplitude')
     axes[0].set_title(f'Waveform: {os.path.basename(audio_file)}')
 
