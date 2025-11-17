@@ -8,9 +8,9 @@ Hidden Markov Model là một mô hình xác suất thống kê được sử d�
 Một HMM được định nghĩa bởi bộ năm thành phần $\lambda = (S, O, A, B, \pi)$:
 
 \begin{itemize}
-    \item \textbf{Tập trạng thái ẩn $S$}: $S = \{s_1, s_2, \ldots, s_N\}$ với $N$ là số trạng thái. Trong bài toán của chúng ta, $N = 26$ trạng thái (24 hợp âm + N + Complex).
+    \item \textbf{Tập trạng thái ẩn $S$}: $S = \{s_1, s_2, \ldots, s_N\}$ với $N$ là số trạng thái. Trong bài toán của chúng ta, $N = 25$ trạng thái (24 hợp âm cơ bản: 12 nốt $\times$ \{maj, min\} + trạng thái \texttt{N} cho no-chord).
     
-    \item \textbf{Tập quan sát $O$}: Không gian các giá trị quan sát có thể. Trong trường hợp này, mỗi quan sát là một vector chroma 12 chiều: $o_t \in \mathbb{R}^{12}$.
+    \item \textbf{Tập quan sát $O$}: Không gian các giá trị quan sát có thể. Trong trường hợp này, mỗi quan sát là một vector đặc trưng 75 chiều: $o_t \in \mathbb{R}^{75}$ (bao gồm chroma, tonnetz, spectral contrast và các delta features).
     
     \item \textbf{Ma trận chuyển trạng thái $A$}: Ma trận $N \times N$ với $A_{ij} = P(s_{t+1} = j \mid s_t = i)$ biểu diễn xác suất chuyển từ trạng thái $i$ sang trạng thái $j$. Thoả mãn:
     \begin{equation}
@@ -89,14 +89,16 @@ Trong miền log (để tránh underflow):
 \subsection{Gaussian Mixture Model (GMM) cho mô hình phát xạ}
 
 \subsubsection{Lý do sử dụng GMM}
-Vector chroma của cùng một hợp âm có thể có phân phối phức tạp do:
+Vector đặc trưng 75 chiều của cùng một hợp âm có thể có phân phối phức tạp do:
 \begin{itemize}
     \item Nhiều cách voicing khác nhau (inversion, doubling notes)
     \item Âm sắc nhạc cụ đa dạng
     \item Nhiễu, harmonics phụ
+    \item Biến thiên trong spectral contrast và tonnetz tùy theo instrumentation
+    \item Động thái thay đổi được bắt bởi delta features
 \end{itemize}
 
-GMM cho phép mô hình hoá phân phối multimodal (nhiều đỉnh) bằng cách kết hợp nhiều Gaussian thành phần.
+GMM cho phép mô hình hoá phân phối multimodal (nhiều đỉnh) bằng cách kết hợp nhiều Gaussian thành phần. Với không gian đặc trưng 75 chiều, việc sử dụng số lượng components nhỏ (1-3) giúp tránh overfitting trong khi vẫn bắt được sự đa dạng của dữ liệu.
 
 \subsubsection{Định nghĩa GMM}
 Một GMM với $K$ thành phần có mật độ xác suất:
@@ -106,8 +108,8 @@ b_i(o) = \sum_{k=1}^{K} w_{ik} \cdot \mathcal{N}(o \mid \mu_{ik}, \Sigma_{ik})
 trong đó:
 \begin{itemize}
     \item $w_{ik}$: trọng số (mixing coefficient) của thành phần $k$ trong GMM của trạng thái $i$, với $\sum_{k=1}^{K} w_{ik} = 1$
-    \item $\mu_{ik} \in \mathbb{R}^{12}$: vector trung bình của thành phần $k$
-    \item $\Sigma_{ik} \in \mathbb{R}^{12 \times 12}$: ma trận hiệp phương sai (covariance matrix) của thành phần $k$
+    \item $\mu_{ik} \in \mathbb{R}^{75}$: vector trung bình của thành phần $k$
+    \item $\Sigma_{ik} \in \mathbb{R}^{75 \times 75}$: ma trận hiệp phương sai (covariance matrix) của thành phần $k$
     \item $\mathcal{N}(o \mid \mu, \Sigma)$: phân phối Gaussian đa biến:
     \begin{equation}
     \mathcal{N}(o \mid \mu, \Sigma) = \frac{1}{(2\pi)^{D/2} |\Sigma|^{1/2}} \exp\left( -\frac{1}{2} (o - \mu)^T \Sigma^{-1} (o - \mu) \right)
@@ -117,15 +119,21 @@ trong đó:
 \subsubsection{Huấn luyện GMM}
 Trong code, mỗi GMM được huấn luyện bằng thuật toán Expectation-Maximization (EM) từ \texttt{sklearn.mixture.GaussianMixture}:
 \begin{verbatim}
-gmm = GaussianMixture(n_components=40, 
-                      random_state=0, 
-                      covariance_type='full')
-gmm.fit(observations_for_state)
+gmm = GaussianMixture(
+    n_components=current_n_components,
+    covariance_type='full',
+    max_iter=100,
+    random_state=72,
+    n_init=3
+)
+gmm.fit(X_state)
 \end{verbatim}
 
 \begin{itemize}
-    \item \texttt{n\_components=40}: số thành phần Gaussian (có thể tuning)
-    \item \texttt{covariance\_type='full'}: ma trận hiệp phương sai đầy đủ (không giả định độc lập giữa các chiều)
+    \item \texttt{n\_components}: số thành phần Gaussian, được điều chỉnh tự động từ 1-3 tùy theo số lượng samples của mỗi trạng thái. Nếu một trạng thái có ít samples, số components sẽ được giảm xuống để tránh overfitting.
+    \item \texttt{covariance\_type='full'}: ma trận hiệp phương sai đầy đủ $(75 \times 75)$ để bắt được tương quan giữa các chiều đặc trưng (không giả định độc lập giữa các chiều)
+    \item \texttt{random\_state=72}: đảm bảo tính tái lập của kết quả
+    \item \texttt{n\_init=3}: số lần khởi tạo ngẫu nhiên khác nhau, chọn kết quả tốt nhất
     \item Phương thức \texttt{gmm.score\_samples(o)}: trả về $\log b_i(o)$ cho vector quan sát $o$
 \end{itemize}
 

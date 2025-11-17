@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.5.7)  10 NOV 2025 20:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.5.7)  17 NOV 2025 19:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -941,14 +941,18 @@ Package pdftex.def Info: graphics/hcmut.png  used on input line 25.
 \openout2 = `contents/section1.aux'.
 
  (./contents/section1.tex
+Overfull \hbox (10.12787pt too wide) in paragraph at lines 6--7
+[]\T5/ptm/m/n/12 Nhªn di»n hñp ¥m (chord recognition) l  mët b i to¡n quan trång trong l¾nh vüc Music Information
+ []
+
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 11.
- (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+(c:/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 24.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 34.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
 [5
 
@@ -956,48 +960,82 @@ Package pdftex.def Info: graphics/hcmut.png  used on input line 24.
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 56.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 67.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
 [6]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 94.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 97.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
 [7]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 131.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 133.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
 [8]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 157.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 177.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
 [9]
+Overfull \hbox (20.1148pt too wide) in paragraph at lines 177--177
+[]\T5/cmtt/m/n/12 spectral_contrast = librosa.util.normalize(spectral_contrast, norm=2, axis=1)[] 
+ []
+
+
+Overfull \hbox (5.30786pt too wide) in paragraph at lines 199--200
+[]\T5/ptm/m/n/12 ^^^÷ñc t½nh b¬ng convolution vîi kernel cè ^^_ành, th÷íng dòng trong speech/audio recognition. 
+ []
+
+
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 183.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 227.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[10])
+[10]
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 255.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[11]
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 291.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[12]
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 349.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[13]
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 359.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[14])
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
 Package pdftex.def Info: graphics/hcmut.png  used on input line 28.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[11]
+[15]
 \openout2 = `contents/section2.aux'.
 
  (./contents/section2.tex
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 39.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 37.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[12
+[16
 
 
 
@@ -1007,116 +1045,189 @@ File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
 Package pdftex.def Info: graphics/hcmut.png  used on input line 73.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[13]
+[17]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 109.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 107.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[14]
+[18]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 149.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 137.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[15]
+[19]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 197.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 183.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[16])
+[20]
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 235.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[21])
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
 Package pdftex.def Info: graphics/hcmut.png  used on input line 29.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[17]
+[22]
 \openout2 = `contents/section3.aux'.
 
  (./contents/section3.tex
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 40.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 37.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[18
+[23
 
 
 
 ]
+Overfull \hbox (22.62909pt too wide) in paragraph at lines 44--45
+[]\T5/ptm/b/n/12 GMM cho méi tr¤ng th¡i\T5/ptm/m/n/12 : Tªp hñp t§t c£ vector 75 chi·u thuëc tr¤ng th¡i ^^_â tø \T5/cmtt/m/n/12 X_train_list\T5/ptm/m/n/12 ,
+ []
+
+
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 83.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 68.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[19]
+[24]
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 112.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 109.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[20])
+[25]
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 134.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[26]
+Overfull \hbox (5.2599pt too wide) in paragraph at lines 138--139
+[]\T5/ptm/b/n/12 Evaluation metrics h¤n ch¸\T5/ptm/m/n/12 : Ch¿ câ frame-level accuracy. N¶n th¶m segment-level metrics,
+ []
+
+
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 155.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[27])
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
 Package pdftex.def Info: graphics/hcmut.png  used on input line 30.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[21]
+[28]
 \openout2 = `contents/section4.aux'.
 
  (./contents/section4.tex
+Overfull \hbox (90.9615pt too wide) in paragraph at lines 13--14
+[]\T5/ptm/b/n/12 Thi¸t k¸ modular functions\T5/ptm/m/n/12 : C¡c h m \T5/cmtt/m/n/12 extract_features()\T5/ptm/m/n/12 , \T5/cmtt/m/n/12 load_labels()\T5/ptm/m/n/12 , \T5/cmtt/m/n/12 calc_hmm_parameters()\T5/ptm/m/n/12 ,
+ []
+
+
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
-Package pdftex.def Info: graphics/hcmut.png  used on input line 32.
+Package pdftex.def Info: graphics/hcmut.png  used on input line 30.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[22
+[29
 
 
 
 ]
-Overfull \hbox (4.0119pt too wide) in paragraph at lines 41--42
-[]\T5/ptm/b/n/12 Transfer learning\T5/ptm/m/n/12 : Pre-train mæ h¼nh tr¶n dataset lîn (v½ dö: McGill Billboard, Isophonics),
+Overfull \hbox (33.78389pt too wide) in paragraph at lines 31--32
+[]\T5/ptm/b/n/12 Multi-feature fusion hi»u qu£\T5/ptm/m/n/12 : K¸t hñp chroma (pitch content), tonnetz (harmonic relationships),
  []
 
 
-Overfull \hbox (8.71594pt too wide) in paragraph at lines 45--46
-\T5/ptm/m/n/12 c¡c metric chu©n (frame-level accuracy, segment-level precision/recall), so s¡nh vîi baseline. 
+Overfull \hbox (3.32787pt too wide) in paragraph at lines 39--40
+\T5/ptm/m/n/12 ngët) hi»u qu£ hìn mean filter v¼ giú ^^_÷ñc bi¶n. Kernel size 5 l  trade-off tèt giúa smoothing
+ []
+
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 47.
+
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 51.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[30{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+Overfull \hbox (10.81519pt too wide) in paragraph at lines 51--52
+[]\T5/ptm/b/n/12 Duration modeling explicit\T5/ptm/m/n/12 : Dòng Hidden Semi-Markov Model (HSMM) ho°c add duration
  []
 
 
-Overfull \hbox (10.43187pt too wide) in paragraph at lines 47--48
-[]\T5/ptm/b/n/12 Real-time implementation\T5/ptm/m/n/12 : Tèi ÷u ho¡ code (v½ dö: dòng Cython, numba) ^^_º xû lþ streaming
+Overfull \hbox (15.90393pt too wide) in paragraph at lines 55--56
+[]\T5/ptm/b/n/12 Segment-level metrics\T5/ptm/m/n/12 : Th¶m ^^_¡nh gi¡ segment-level (oversegmentation, undersegmentation,
  []
 
-)
+
+Overfull \hbox (10.89922pt too wide) in paragraph at lines 55--56
+\T5/ptm/m/n/12 boundary precision/recall) theo MIREX standards, khæng ch¿ frame-level accuracy. Weighted
+ []
+
+
+Overfull \hbox (19.82791pt too wide) in paragraph at lines 57--58
+[]\T5/ptm/b/n/12 Real-time streaming\T5/ptm/m/n/12 : Optimize vîi Cython/numba, use incremental Viterbi (online decoding),
+ []
+
+
+Overfull \hbox (9.9392pt too wide) in paragraph at lines 59--60
+\T5/ptm/m/n/12 probabilities ho°c GMM posteriors), gióp downstream applications handle uncertain regions. 
+ []
+
+
+Overfull \hbox (9.92647pt too wide) in paragraph at lines 68--69
+[]\T5/ptm/b/n/12 Modeling careful\T5/ptm/m/n/12 : HMM 25 states vîi GMM adaptive (1-3 components), Laplace smoothing
+ []
+
+
+
+File: graphics/hcmut.png Graphic file (type png)
+<use graphics/hcmut.png>
+Package pdftex.def Info: graphics/hcmut.png  used on input line 77.
+(pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
+[31])
 
 File: graphics/hcmut.png Graphic file (type png)
 <use graphics/hcmut.png>
 Package pdftex.def Info: graphics/hcmut.png  used on input line 31.
 (pdftex.def)             Requested size: 28.44968pt x 28.44977pt.
-[23] (build/main.aux (build/contents/section1.aux) (build/contents/section2.aux) (build/contents/section3.aux) (build/contents/section4.aux))
+[32] (build/main.aux (build/contents/section1.aux) (build/contents/section2.aux) (build/contents/section3.aux) (build/contents/section4.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-04-14>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 265A005FC7A1A488D2E492FCC2887036;11859.
+(rerunfilecheck)             Checksum: 44808D3A27BFACE914021BB801B22F52;11799.
  ) 
 Here is how much of TeX's memory you used:
- 26585 strings out of 469608
- 485555 string characters out of 5474780
- 883160 words of memory out of 5000000
- 52777 multiletter control sequences out of 15000+600000
- 683294 words of font info for 130 fonts, out of 8000000 for 9000
+ 26621 strings out of 469608
+ 485826 string characters out of 5474780
+ 883163 words of memory out of 5000000
+ 52778 multiletter control sequences out of 15000+600000
+ 684738 words of font info for 132 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 125i,24n,121p,798b,819s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/rsfs/rsfs10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/symbol/usyr.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/symbol/usyr.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/urwvn/utmb8v.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/urwvn/utmr8v.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/urwvn/utmri8v.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/vnr/vntt12.pfb>
-Output written on build/main.pdf (23 pages, 270114 bytes).
+ 125i,24n,121p,593b,752s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/rsfs/rsfs10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/symbol/usyr.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/symbol/usyr.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/urwvn/utmb8v.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/urwvn/utmr8v.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/urwvn/utmri8v.pfb><c:/texlive/2025/texmf-dist/fonts/type1/vntex/vnr/vntt12.pfb>
+Output written on build/main.pdf (32 pages, 291680 bytes).
 PDF statistics:
- 544 PDF objects out of 1000 (max. 8388607)
- 484 compressed objects within 5 object streams
- 123 named destinations out of 1000 (max. 500000)
+ 623 PDF objects out of 1000 (max. 8388607)
+ 549 compressed objects within 6 object streams
+ 155 named destinations out of 1000 (max. 500000)
  482 words of extra memory for PDF output out of 10000 (max. 10000000)
 

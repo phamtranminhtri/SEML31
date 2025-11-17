@@ -6,86 +6,100 @@
 \begin{itemize}
     \item Dữ liệu huấn luyện: Tập các file âm thanh (.mp3/.wav) kèm file annotation (.lab)
     \item Mỗi file .lab chứa thông tin: \texttt{start\_time end\_time chord\_label}
-    \item Sau khi aggregate, dữ liệu được lưu trong file \texttt{hmm\_data\_package.npz} gồm:
+    \item Sau khi trích xuất đặc trưng và căn chỉnh nhãn, dữ liệu được tổ chức thành:
     \begin{itemize}
-        \item \texttt{X\_data}: Ma trận chroma $(M_{total} \times 12)$, với $M_{total}$ là tổng số frame từ tất cả các bài
-        \item \texttt{y\_data}: Vector nhãn $(M_{total},)$ chứa state ID
-        \item \texttt{lengths}: Mảng chứa số frame của từng bài, để phân tách các chuỗi độc lập
+        \item \texttt{X\_train\_list}, \texttt{X\_test\_list}: Danh sách ma trận đặc trưng $(M_i \times 75)$ cho mỗi bài hát, với $M_i$ là số frame của bài thứ $i$. Mỗi frame là vector 75 chiều (chroma + tonnetz + spectral contrast + delta features)
+        \item \texttt{y\_train\_list}, \texttt{y\_test\_list}: Danh sách vector nhãn tương ứng, mỗi phần tử là chord label (string) cho từng frame
+        \item Tổng cộng: 40 bài train, 10 bài test (random seed=72)
     \end{itemize}
 \end{itemize}
 
 \subsubsection{Tham số mô hình}
 \begin{itemize}
-    \item Số trạng thái HMM: $N = 26$ (24 hợp âm + N + Complex)
+    \item Số trạng thái HMM: $N = 25$ (24 hợp âm cơ bản: 12 nốt $\times$ \{maj, min\} + trạng thái \texttt{N} cho no-chord)
     \item Sample rate: 22050 Hz
     \item Hop length: 512 samples ($\approx$ 23.2 ms, $\approx$ 43 frames/giây)
-    \item Số thành phần GMM mỗi trạng thái: 40 (có thể điều chỉnh dựa trên BIC/AIC analysis)
-    \item Covariance type: \texttt{full}
+    \item Chiều vector đặc trưng: 75 (chroma 12 + tonnetz 6 + spectral contrast 7, mỗi loại có base + delta + delta$^2$)
+    \item Số thành phần GMM mỗi trạng thái: 1-3 (adaptive, điều chỉnh tự động dựa trên số samples của mỗi trạng thái)
+    \item Covariance type: \texttt{full} (ma trận $75 \times 75$)
+    \item Random seed: 72 (cho tính tái lập)
 \end{itemize}
 
 \subsection{Quy trình huấn luyện}
 
-\subsubsection{Bước 1: Trích xuất và căn chỉnh}
+\subsubsection{Bước 1: Trích xuất đặc trưng và căn chỉnh nhãn}
 \begin{verbatim}
-all_chroma_vectors, all_label_vectors = 
-    aggregate_all_data(DATA_DIR, audio_processor)
+for audio_file in train_songs:
+    features = extract_features(audio_file, hop_length=512)
+    labels = load_labels(lab_file, n_frames, hop=512, sr=22050)
+    X_train_list.append(features)  # shape: (M_i, 75)
+    y_train_list.append(labels)    # length: M_i
 \end{verbatim}
-Kết quả: Danh sách các cặp (chroma features, aligned labels) cho mỗi bài hát.
+Kết quả: Danh sách các cặp (75-dim features, aligned labels) cho mỗi bài hát trong tập train và test.
 
 \subsubsection{Bước 2: Tính toán tham số HMM}
 \begin{itemize}
-    \item \textbf{Ma trận $A$}: Đếm số lần chuyển trạng thái, thêm smoothing $10^{-5}$, chuẩn hoá
-    \item \textbf{Vector $\pi$}: Đếm trạng thái đầu tiên của mỗi bài, chuẩn hoá
-    \item \textbf{GMM cho mỗi trạng thái}: Tập hợp tất cả chroma vector thuộc trạng thái đó, huấn luyện GMM
+    \item \textbf{Ma trận $A$}: Đếm số lần chuyển trạng thái từ \texttt{y\_train\_list}, thêm Laplace smoothing $\epsilon = 10^{-8}$, chuẩn hoá theo hàng
+    \item \textbf{Vector $\pi$}: Đếm trạng thái đầu tiên của mỗi bài trong \texttt{y\_train\_list}, thêm smoothing, chuẩn hoá
+    \item \textbf{GMM cho mỗi trạng thái}: Tập hợp tất cả vector 75 chiều thuộc trạng thái đó từ \texttt{X\_train\_list}, huấn luyện GMM với 1-3 components (adaptive)
 \end{itemize}
 
 Output:
 \begin{verbatim}
-INITIAL_STATE_DISTRIBUTION shape: (26,)
-TRANSITION_MATRIX shape: (26, 26)
-EMISSION_MODELS: 26 GMM models
+A, pi = calc_hmm_parameters(y_train_list, n_states=25, epsilon=1e-8)
+pi shape: (25,)
+A shape: (25, 25)
+
+GMM_Models = train_GMM(X_train_list, y_train_list, 
+                       n_states=25, n_components=3)
+EMISSION_MODELS: 25 GMM models (một số có thể là None nếu thiếu data)
 \end{verbatim}
 
 \subsection{Quy trình dự đoán}
 
-Với một file âm thanh mới (không có nhãn):
+Với một file âm thanh mới từ test set:
 
-\subsubsection{Bước 1: Trích xuất chroma}
+\subsubsection{Bước 1: Trích xuất đặc trưng}
 \begin{verbatim}
-features = audio_processor.extract_chroma(audio_file)
+features = extract_features(audio_file, hop_length=512)
 \end{verbatim}
-Output: Ma trận chroma $(M \times 12)$ với $M$ là số frame.
+Output: Ma trận đặc trưng $(M \times 75)$ với $M$ là số frame.
 
-\subsubsection{Bước 2: Áp dụng Viterbi}
+\subsubsection{Bước 2: Tính log-likelihood}
 \begin{verbatim}
-predicted_state_ids = viterbi(features, 
-                               INITIAL_STATE_DISTRIBUTION, 
-                               TRANSITION_MATRIX, 
-                               EMISSION_MODELS)
+log_B = compute_log_likelihoods(GMM_Models, features)
 \end{verbatim}
-Output: Mảng state ID $(M,)$.
+Output: Ma trận log-likelihood $(25 \times M)$, trong đó \texttt{log\_B[i, t]} = $\log P(x_t | s_t = i)$.
 
-\subsubsection{Bước 3: Chuyển đổi về nhãn hợp âm}
+\subsubsection{Bước 3: Áp dụng Viterbi}
 \begin{verbatim}
-predicted_chords = [ID_TO_CHORD[state_id] 
-                    for state_id in predicted_state_ids]
+predicted_state_ids = viterbi_log(pi, A, log_B)
+predicted_state_ids = medfilt(predicted_state_ids, kernel_size=5)
+\end{verbatim}
+Output: Mảng state ID $(M,)$ sau khi làm mịn bằng median filter.
+
+\subsubsection{Bước 4: Chuyển đổi về nhãn hợp âm}
+\begin{verbatim}
+predicted_chords = [ID_TO_CHORD.get(sid, 'N') 
+                    for sid in predicted_state_ids]
 \end{verbatim}
 Output: Danh sách nhãn hợp âm (ví dụ: \texttt{['C:maj', 'C:maj', 'F:maj', ...]}).
 
-\subsubsection{Bước 4: Lưu kết quả}
-Mỗi frame tương ứng một nhãn, được ghi ra file \texttt{.txt}:
+\subsubsection{Bước 5: Đánh giá}
+So sánh chuỗi dự đoán với ground truth:
 \begin{verbatim}
-C:maj
-C:maj
-F:maj
-G:maj
-...
+acc, y_true_flat, y_pred_flat = calculate_accuracy(
+    all_predicted_chords, all_true_labels
+)
+print(f"Overall Accuracy: {acc * 100:.2f}%")
 \end{verbatim}
 
-Nếu muốn chuyển về dạng khoảng thời gian (segment), cần gom các frame liên tiếp có cùng nhãn và tính thời gian bằng công thức:
-\begin{equation}
-t_i = \frac{i \times \text{hop\_length}}{\text{sample\_rate}}
-\end{equation}
+Vẽ confusion matrix để phân tích chi tiết:
+\begin{verbatim}
+plot_confusion_matrix(y_true_flat, y_pred_flat, CHORD_STATES)
+\end{verbatim}
+
+Confusion matrix cho thấy ma trận nhầm lẫn giữa 25 trạng thái, giúp xác định các cặp hợp âm thường bị nhầm lẫn (ví dụ: C:maj vs C:min, hoặc các hợp âm enharmonic).
 
 \subsection{Phân tích kết quả}
 
@@ -99,33 +113,46 @@ Sau khi merge tất cả file dự đoán, notebook thực hiện phân tích đ
 
 \textbf{Nhận xét chung:}
 \begin{itemize}
-    \item Các hợp âm phổ biến (C:maj, G:maj, F:maj, A:min, D:min) thường xuất hiện nhiều hơn
-    \item Trạng thái "N" (no-chord) có thể chiếm tỷ lệ đáng kể nếu có nhiều đoạn im lặng hoặc intro/outro
-    \item Trạng thái "Complex" xuất hiện ít hơn, phản ánh việc đơn giản hoá không gian trạng thái
+    \item Các hợp âm phổ biến trong nhạc pop/rock (C:maj, G:maj, F:maj, A:min, D:min) thường xuất hiện nhiều hơn và có accuracy cao hơn do có nhiều training samples
+    \item Trạng thái "N" (no-chord) có thể chiếm tỷ lệ đáng kể nếu có nhiều đoạn im lặng, intro/outro, hoặc đoạn chỉ có percussion
+    \item Các hợp âm ít phổ biến (ví dụ: D\#:maj, G\#:min) có thể có accuracy thấp hơn do thiếu training data
+    \item Vector đặc trưng 75 chiều (với tonnetz và spectral contrast) giúp phân biệt tốt hơn so với chỉ dùng chroma 12 chiều
 \end{itemize}
 
 \subsubsection{Ưu điểm của phương pháp}
 \begin{itemize}
-    \item \textbf{Tận dụng thông tin chuỗi}: HMM mô hình hoá tiến trình hợp âm tự nhiên (ví dụ: I-IV-V-I), giúp dự đoán mượt mà hơn so với phân loại độc lập từng frame.
-    \item \textbf{Xử lý nhiễu tốt}: GMM với nhiều thành phần có thể bắt được sự đa dạng của cùng một hợp âm trên nhiều nhạc cụ, phong cách khác nhau.
-    \item \textbf{Hiệu quả tính toán}: Viterbi với $O(T \times N^2)$ khả thi cho real-time hoặc near real-time với $N=26$ và $T$ vài nghìn frame.
-    \item \textbf{Supervised learning đơn giản}: Không cần thuật toán phức tạp như Baum-Welch, chỉ cần đếm tần suất từ dữ liệu có nhãn.
+    \item \textbf{Tận dụng thông tin chuỗi}: HMM mô hình hoá tiến trình hợp âm tự nhiên (ví dụ: I-IV-V-I), giúp dự đoán mượt mà hơn so với phân loại độc lập từng frame. Ma trận chuyển trạng thái $A$ học được các transition phổ biến từ dữ liệu.
+    \item \textbf{Đặc trưng phong phú}: Vector 75 chiều kết hợp chroma (pitch content), tonnetz (harmonic relationships), spectral contrast (timbre), và delta features (temporal dynamics), cung cấp thông tin toàn diện hơn chỉ dùng chroma.
+    \item \textbf{Xử lý nhiễu tốt}: GMM với 1-3 components (adaptive) và median filtering giúp giảm nhiễu ngắn hạn và xử lý được sự đa dạng của cùng một hợp âm.
+    \item \textbf{Hiệu quả tính toán}: Viterbi trong miền log với $O(T \times N^2)$ khả thi cho real-time với $N=25$ và $T$ vài nghìn frame. Median filter post-processing có độ phức tạp $O(T)$.
+    \item \textbf{Supervised learning đơn giản}: Không cần Baum-Welch, chỉ cần đếm tần suất từ dữ liệu có nhãn. Dễ debug và interpret kết quả.
 \end{itemize}
 
 \subsubsection{Hạn chế và hướng cải thiện}
 \begin{itemize}
-    \item \textbf{Không gian trạng thái rút gọn}: 26 trạng thái không thể biểu diễn các hợp âm phức tạp (7th, 9th, sus4, dim, aug). Có thể mở rộng thêm trạng thái nhưng cần dữ liệu lớn hơn.
-    \item \textbf{Giả định Markov bậc 1}: Không bắt được cấu trúc dài hạn (ví dụ: verse-chorus pattern). Có thể sử dụng higher-order HMM hoặc kết hợp với mô hình cấu trúc âm nhạc.
-    \item \textbf{Phụ thuộc vào chất lượng annotation}: Nếu file .lab có lỗi hoặc không đồng nhất, tham số HMM sẽ bị ảnh hưởng.
-    \item \textbf{Tuning GMM components}: Số thành phần 40 là một lựa chọn ban đầu. Có thể tối ưu hoá bằng cross-validation hoặc grid search với BIC/AIC (code có phần comment về điều này).
-    \item \textbf{Đánh giá định lượng}: Hiện tại chưa có metric như accuracy, precision, recall trên test set. Nên tách train/test và tính các chỉ số đánh giá.
+    \item \textbf{Không gian trạng thái rút gọn}: 25 trạng thái (chỉ maj/min) không thể biểu diễn các hợp âm phức tạp (7th, 9th, sus4, dim, aug, add9). Mở rộng không gian trạng thái cần dataset lớn hơn để tránh overfitting.
+    \item \textbf{Giả định Markov bậc 1}: Chỉ xét trạng thái trước đó, không bắt được cấu trúc dài hạn (verse-chorus, bridge patterns). Có thể dùng higher-order HMM hoặc hierarchical models.
+    \item \textbf{Phụ thuộc annotation quality}: Nếu file .lab có lỗi, không đồng nhất về chord notation, hoặc timing không chính xác, tham số HMM sẽ bị ảnh hưởng. Cần pre-processing và validation dữ liệu nhãn.
+    \item \textbf{GMM components cố định}: Dù adaptive (1-3), vẫn chưa tối ưu cho từng trạng thái. Có thể dùng BIC/AIC để chọn số components riêng hoặc thử non-parametric models (e.g., DPGMM).
+    \item \textbf{Dataset nhỏ}: Chỉ 50 bài Beatles (40 train, 10 test) chưa đủ đa dạng về thể loại, phong cách, nhạc cụ. Mô hình có thể không generalize tốt cho nhạc khác.
+    \item \textbf{Evaluation metrics hạn chế}: Chỉ có frame-level accuracy. Nên thêm segment-level metrics, weighted accuracy (theo chord frequency), và perceptual evaluation.
 \end{itemize}
 
 \subsection{Đề xuất cải tiến}
 \begin{enumerate}
-    \item \textbf{Mở rộng tập trạng thái}: Thêm các hợp âm 7th, suspended, diminished phổ biến (ví dụ: C:maj7, G:7, D:sus4).
-    \item \textbf{Duration modeling}: HMM chuẩn không mô hình hoá độ dài trạng thái (duration). Có thể dùng Hidden Semi-Markov Model (HSMM) để mô hình hoá rõ ràng thời gian tồn tại của mỗi hợp âm.
-    \item \textbf{Context features}: Thêm các đặc trưng ngoài chroma (ví dụ: MFCC, spectral contrast) để cải thiện khả năng phân biệt.
-    \item \textbf{Deep learning hybrid}: Kết hợp với mạng neural (ví dụ: CNN hoặc RNN) để học biểu diễn tốt hơn, sau đó dùng HMM để làm mịn chuỗi.
-    \item \textbf{Ensemble methods}: Kết hợp nhiều mô hình (HMM với tham số khác nhau, hoặc HMM + classification) để tăng độ tin cậy.
+    \item \textbf{Mở rộng dataset}: Thu thập thêm dữ liệu từ nhiều thể loại (jazz, classical, pop, rock) và nguồn khác nhau (McGill Billboard, Isophonics) để tăng tính generalization.
+    
+    \item \textbf{Mở rộng tập trạng thái}: Thêm các hợp âm phổ biến (7th, sus4, dim, aug) với vocab hierarchy (major/minor as base classes, extensions as variants).
+    
+    \item \textbf{Duration modeling}: Dùng Hidden Semi-Markov Model (HSMM) hoặc thêm duration features để mô hình hoá explicit chord duration, tránh chuyển đổi quá nhanh.
+    
+    \item \textbf{Advanced features}: Thêm beat-synchronous features (aggregate theo beat thay vì fixed hop), bass chroma (để detect inversions), hoặc learned features từ pre-trained models.
+    
+    \item \textbf{Deep learning hybrid}: Dùng CNN/Transformer để học embeddings từ spectrogram, sau đó feed vào HMM hoặc CRF để capture temporal structure. Hoặc end-to-end với Bi-LSTM + CTC.
+    
+    \item \textbf{Ensemble methods}: Kết hợp nhiều models (HMM với features khác nhau, GMM vs Deep models) bằng voting hoặc stacking để tăng robustness.
+    
+    \item \textbf{Post-processing cải tiến}: Thay median filter bằng Conditional Random Field (CRF) hoặc Viterbi với language model constraints để enforce musical grammar.
+    
+    \item \textbf{Evaluation toàn diện}: Thêm cross-validation, segment-level metrics (MIREX standards), ablation study (từng loại feature), và human evaluation (perceptual quality).
 \end{enumerate}

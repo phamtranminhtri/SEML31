@@ -4,13 +4,15 @@
 Báo cáo này trình bày một hệ thống hoàn chỉnh cho bài toán nhận diện hợp âm từ tín hiệu âm thanh sử dụng Hidden Markov Model và thuật toán Viterbi. Các đóng góp chính bao gồm:
 
 \begin{enumerate}
-    \item \textbf{Pipeline xử lý tín hiệu số}: Từ tín hiệu âm thanh thô đến đặc trưng chroma được chuẩn hoá, với lựa chọn tham số DSP hợp lý (sample rate 22050 Hz, hop length 512).
+    \item \textbf{Pipeline xử lý tín hiệu số phong phú}: Từ tín hiệu âm thanh thô đến vector đặc trưng 75 chiều kết hợp nhiều loại features (chroma CQT, tonnetz, spectral contrast) cùng delta features để bắt động thái thay đổi. Áp dụng HPSS để tách harmonic, median filtering để giảm nhiễu, và L2 normalization. Tham số DSP: sample rate 22050 Hz, hop length 512.
     
-    \item \textbf{Mô hình hoá HMM supervised}: Ước lượng tham số HMM từ dữ liệu có nhãn, sử dụng GMM với 40 thành phần để mô hình hoá emission probabilities.
+    \item \textbf{Mô hình hoá HMM supervised với 25 trạng thái}: Ước lượng tham số HMM ($\pi$, $A$) từ dữ liệu có nhãn với Laplace smoothing ($\epsilon = 10^{-8}$). Sử dụng GMM adaptive (1-3 components tùy số samples) với full covariance để mô hình hoá emission probabilities.
     
-    \item \textbf{Giải mã Viterbi hiệu quả}: Implementation thuật toán Viterbi trong miền log-probability để tránh underflow và tìm chuỗi hợp âm có xác suất cao nhất.
+    \item \textbf{Giải mã Viterbi hiệu quả}: Implementation thuật toán Viterbi trong miền log-probability để tránh underflow, kết hợp median filter (kernel size 5) post-processing để làm mịn chuỗi dự đoán.
     
-    \item \textbf{Thiết kế module tái sử dụng}: Lớp \texttt{AudioProcessor} đóng gói các chức năng trích xuất và căn chỉnh, dễ dàng áp dụng cho file mới.
+    \item \textbf{Thiết kế modular functions}: Các hàm \texttt{extract\_features()}, \texttt{load\_labels()}, \texttt{calc\_hmm\_parameters()}, \texttt{train\_GMM()}, \texttt{viterbi\_log()} được tổ chức thành modules độc lập, dễ tái sử dụng và test.
+    
+    \item \textbf{Đánh giá định lượng}: Thiết lập train/test split (40/10 bài, seed=72), tính frame-level accuracy, và visualize confusion matrix để phân tích chi tiết hiệu năng trên 25 trạng thái.
 \end{enumerate}
 
 \subsection{Ý nghĩa và ứng dụng}
@@ -24,28 +26,55 @@ Hệ thống này có thể được ứng dụng trong:
 
 \subsection{Bài học kinh nghiệm}
 \begin{itemize}
-    \item \textbf{Tầm quan trọng của tham số DSP}: Lựa chọn sample rate và hop length ảnh hưởng trực tiếp đến chất lượng đặc trưng và hiệu suất tính toán. Cần cân bằng giữa độ phân giải và chi phí.
+    \item \textbf{Tầm quan trọng của tham số DSP}: Lựa chọn sample rate và hop length ảnh hưởng trực tiếp đến chất lượng đặc trưng và hiệu suất tính toán. Cần cân bằng giữa độ phân giải thời gian (43 frames/giây) và chi phí tính toán.
     
-    \item \textbf{Trade-off giữa độ phức tạp mô hình và dữ liệu}: Không gian trạng thái lớn hơn (nhiều loại hợp âm hơn) yêu cầu dữ liệu huấn luyện nhiều hơn để tránh overfitting.
+    \item \textbf{Multi-feature fusion hiệu quả}: Kết hợp chroma (pitch content), tonnetz (harmonic relationships), spectral contrast (timbre) cùng delta features (temporal dynamics) cho accuracy tốt hơn đáng kể so với chỉ dùng chroma. Vector 75 chiều capture được nhiều khía cạnh của âm nhạc.
     
-    \item \textbf{Smoothing quan trọng}: Thêm giá trị smoothing nhỏ ($10^{-5}$) vào ma trận chuyển trạng thái giúp tránh xác suất bằng 0, cải thiện độ ổn định của mô hình.
+    \item \textbf{Trade-off giữa độ phức tạp mô hình và dữ liệu}: Rút gọn không gian trạng thái về 25 (chỉ maj/min) giúp tránh overfitting với dataset nhỏ (50 bài). Mở rộng thêm chord types cần dataset lớn hơn.
     
-    \item \textbf{GMM hiệu quả cho emission modeling}: So với single Gaussian, GMM linh hoạt hơn trong việc mô hình hoá phân phối phức tạp của chroma features.
+    \item \textbf{Smoothing quan trọng}: Laplace smoothing với $\epsilon = 10^{-8}$ (rất nhỏ) vào ma trận $A$ và $\pi$ giúp tránh $\log(0)$ trong Viterbi mà không làm bias model quá nhiều. Giá trị quá lớn sẽ làm mất đi thông tin từ data.
+    
+    \item \textbf{GMM adaptive hiệu quả}: Điều chỉnh số components (1-3) theo số samples của mỗi trạng thái tránh overfitting cho rare chords. Full covariance matrix (75×75) bắt được correlation giữa các features nhưng tốn memory.
+    
+    \item \textbf{Post-processing quan trọng}: Median filter sau Viterbi loại bỏ outliers (chord nhảy đột ngột) hiệu quả hơn mean filter vì giữ được biên. Kernel size 5 là trade-off tốt giữa smoothing và preserving transitions.
 \end{itemize}
 
 \subsection{Hướng phát triển tương lai}
 Các hướng nghiên cứu tiếp theo có thể bao gồm:
 \begin{enumerate}
-    \item \textbf{Kết hợp deep learning}: Sử dụng Convolutional Neural Network (CNN) hoặc Recurrent Neural Network (RNN) để học biểu diễn từ spectrogram, sau đó dùng HMM hoặc CRF (Conditional Random Field) để làm mịn chuỗi.
+    \item \textbf{Mở rộng không gian trạng thái}: Thêm các chord types phổ biến (7th, sus4, dim, aug) với hierarchical vocabulary hoặc factorized representations (root × quality). Cần augment dataset hoặc transfer learning để tránh overfitting.
     
-    \item \textbf{Transfer learning}: Pre-train mô hình trên dataset lớn (ví dụ: McGill Billboard, Isophonics), sau đó fine-tune cho domain cụ thể.
+    \item \textbf{Kết hợp deep learning end-to-end}: Sử dụng Transformer hoặc Bi-LSTM trực tiếp trên spectrogram/CQT, với CTC loss hoặc attention mechanism. Hoặc hybrid approach: CNN extract features → HMM/CRF temporal modeling.
     
-    \item \textbf{Multi-resolution analysis}: Kết hợp thông tin từ nhiều hop length khác nhau để bắt cả biến đổi nhanh và xu hướng dài hạn.
+    \item \textbf{Transfer learning cross-dataset}: Pre-train trên dataset lớn đa dạng (McGill Billboard, Isophonics, JAAH) để học robust representations, sau đó fine-tune hoặc few-shot learning cho domain cụ thể (genre-specific, artist-specific).
     
-    \item \textbf{Đánh giá định lượng chặt chẽ}: Thiết lập protocol đánh giá với train/validation/test split, các metric chuẩn (frame-level accuracy, segment-level precision/recall), so sánh với baseline.
+    \item \textbf{Duration modeling explicit}: Dùng Hidden Semi-Markov Model (HSMM) hoặc add duration features để mô hình hoá chord duration distribution, tránh chuyển đổi quá nhanh (minimum duration constraints).
     
-    \item \textbf{Real-time implementation}: Tối ưu hoá code (ví dụ: dùng Cython, numba) để xử lý streaming audio với độ trễ thấp.
+    \item \textbf{Beat-synchronous analysis}: Aggregate features theo beats (từ beat tracker) thay vì fixed hop length. Chord changes thường align với beats, giúp reduce noise và tăng musical consistency.
+    
+    \item \textbf{Segment-level metrics}: Thêm đánh giá segment-level (oversegmentation, undersegmentation, boundary precision/recall) theo MIREX standards, không chỉ frame-level accuracy. Weighted metrics theo chord frequency.
+    
+    \item \textbf{Real-time streaming}: Optimize với Cython/numba, use incremental Viterbi (online decoding), và look-ahead buffer nhỏ. Target latency < 100ms cho live performance applications.
+    
+    \item \textbf{Uncertainty quantification}: Output confidence scores cho mỗi prediction (từ Viterbi probabilities hoặc GMM posteriors), giúp downstream applications handle uncertain regions.
 \end{enumerate}
 
 \subsection{Lời kết}
-Báo cáo này đã trình bày chi tiết một cách tiếp cận cổ điển nhưng hiệu quả cho bài toán nhận diện hợp âm, từ lý thuyết xử lý tín hiệu số, mô hình Markov ẩn, đến implementation cụ thể với Python và các thư viện mã nguồn mở. Mặc dù có những hạn chế, phương pháp HMM/GMM vẫn là nền tảng quan trọng, giúp hiểu sâu về bản chất của bài toán và làm tiền đề cho các phương pháp hiện đại hơn. Hy vọng tài liệu này hữu ích cho người đọc quan tâm đến lĩnh vực Music Information Retrieval và xử lý tín hiệu âm thanh.
+Báo cáo này đã trình bày chi tiết một hệ thống nhận diện hợp âm hoàn chỉnh sử dụng Hidden Markov Model, từ lý thuyết nền tảng (DSP, HMM, Viterbi) đến implementation cụ thể với Python và thư viện mã nguồn mở (librosa, scikit-learn, scipy). Các điểm nổi bật:
+
+\begin{itemize}
+    \item \textbf{Feature engineering comprehensive}: Kết hợp 3 loại features (chroma, tonnetz, spectral contrast) với delta/delta-delta, tạo vector 75 chiều rich hơn nhiều so với chỉ dùng chroma 12 chiều.
+    
+    \item \textbf{Modeling careful}: HMM 25 states với GMM adaptive (1-3 components), Laplace smoothing chính xác ($10^{-8}$), và median filter post-processing cho kết quả stable.
+    
+    \item \textbf{Evaluation rigorous}: Train/test split có reproducibility (seed=72), frame-level accuracy, confusion matrix analysis trên Beatles dataset (50 songs).
+\end{itemize}
+
+Mặc dù phương pháp HMM/GMM là "classical" so với deep learning hiện đại, nó vẫn là nền tảng quan trọng giúp hiểu sâu về:
+\begin{itemize}
+    \item Bản chất sequential của âm nhạc (temporal dependencies)
+    \item Trade-offs trong model design (state space size, feature dimensionality, model complexity vs. data size)
+    \item Probabilistic reasoning và dynamic programming
+\end{itemize}
+
+Code implementation modular và well-documented, dễ dàng extend cho các tác vụ tương tự (key detection, structure analysis). Hy vọng tài liệu này hữu ích cho người đọc quan tâm đến Music Information Retrieval, signal processing, và probabilistic graphical models.
