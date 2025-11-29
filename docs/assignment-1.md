@@ -44,7 +44,7 @@ The preprocess pipeline also splits the `Date` column into day, month, year; dro
 
 ## Training result
 
-The following preprocess configuration is chosen for training. We have a total of $2\cdot 2\cdot 2 = 8$ preprocessing combinations.
+The following preprocess configuration is chosen for training. We have a total of 8 preprocessing combinations.
 1.   `fill_na`: median, mean
 2.   `cat_encode`: ordinal, onehot
 3.   `pca_variance`: 0.9, None
