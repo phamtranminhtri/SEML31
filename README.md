@@ -4,6 +4,8 @@
 Ho Chi Minh City University of Technology (HCMUT) – Vietnam National University-Ho Chi Minh City (VNU-HCMC).  
 Machine Learning (CO3117) assignments, group TN01, team SEML31.
 
+> [**Landing Page**](https://phamtranminhtri.github.io/SEML31/)
+
 ## 1. General information
 - Course name: Machine Learning (CO3117).
 - Semester 251, academic year: 2025-2026.
