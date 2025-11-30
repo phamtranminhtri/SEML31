@@ -19,12 +19,12 @@ We begin with a brief review of the basic music theory concepts.
 
 # Basic Music Theory
 
-## Pitch and Duration
+## Pitch
 
 In the Western music system, one octave contains **12 notes**, with **A4 = 440 Hz** as the standard tuning reference.  
 The pitch of all other notes is calculated relative to this reference.
 
-![12 Notes](./image/extension/12%20notes.png)
+![12 Notes](./image/extension/12-notes.png)
 
 ## Fundamental Chords
 
@@ -54,12 +54,9 @@ The dataset consists of **50 songs by The Beatles**, each including:
 
 Each song is randomly segmented into **8 sections** to enable the model to learn intermediate musical segments.
 
-![Song Segmentation](./image/extension/song-segmentation.jpeg)
+![Song Segmentation](./image/extension/song-segmentation.jpg)
 
 Corresponding `.lab` files are generated for each audio segment.
-
-![C Major Inversions](./image/extension/c-major-inversions.png)  
-![C Minor Inversions](./image/extension/c-minor-inversions.png)
 
 ---
 
@@ -114,6 +111,19 @@ Measures the energy of the 12 pitch classes in each time frame.
 ---
 
 # Results
+Overall Accuracy: 42.77%
 
-## Evaluation Metrics
+
+## Confusion Matrix
+
+![Confusion Matrix](./image/extension/result-confussion-matrix.png)
+
+## Discussion
+
+Although the dataset was augmented, the overall accuracy remains moderate.  
+The chords most frequently recognized correctly are **Cmaj, Dmaj, Amaj, Gmaj**, which also correspond to the most common chords identified in the EDA.
+
+## Future Improvements
+
+Future work will employ **wavelet-based feature extraction** to better capture the characteristics of music
 
