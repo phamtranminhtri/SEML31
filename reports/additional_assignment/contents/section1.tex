@@ -1,0 +1,389 @@
+\section{Giới thiệu}
+
+Phần này tóm tắt nội dung và phương pháp được triển khai trong bộ mã tham khảo (notebook kèm theo) cho bài toán nhận diện hợp âm từ file âm thanh sử dụng Hidden Markov Model và thuật toán Viterbi.
+
+\subsection{Bối cảnh}
+Nhận diện hợp âm (chord recognition) là một bài toán quan trọng trong lĩnh vực Music Information Retrieval (MIR) và xử lý tín hiệu âm thanh. Mục tiêu là dự đoán chuỗi hợp âm xuất hiện theo thời gian trong một bản nhạc. Ứng dụng bao gồm phân tích âm nhạc, tạo chord chart tự động, hỗ trợ học nhạc, và tìm kiếm bài hát theo tiến trình hợp âm.
+
+\subsection{Dataset}
+Dữ liệu sử dụng trong project này bao gồm 50 bài hát của The Beatles, mỗi bài gồm:
+\begin{itemize}
+	\item File âm thanh định dạng MP3
+	\item File annotation (.lab) chứa thông tin chord label theo thời gian với định dạng: \texttt{start\_time end\_time chord\_label}
+\end{itemize}
+
+Dataset được chia thành 40 bài cho training và 10 bài cho testing theo phương pháp random shuffle với seed cố định (seed=72) để đảm bảo tính tái lập.
+
+\subsection{Tổng quan phương pháp}
+Hệ thống nhận diện hợp âm thực hiện pipeline gồm các bước chính sau:
+
+\begin{enumerate}
+	\item \textbf{Exploratory Data Analysis (EDA)}: Phân tích phân phối hợp âm, thống kê các transition phổ biến, và visualize đặc trưng âm thanh.
+	
+	\item \textbf{Tiền xử lý (Preprocessing)}: 
+	\begin{itemize}
+		\item Đơn giản hóa không gian trạng thái về 25 trạng thái (24 hợp âm cơ bản: 12 nốt $\times$ \{maj, min\} + trạng thái "N" cho no-chord)
+		\item Ánh xạ enharmonic (Db $\rightarrow$ C\#, Eb $\rightarrow$ D\#, v.v.)
+		\item Chia dataset thành train/test sets
+	\end{itemize}
+	
+	\item \textbf{Trích xuất đặc trưng (Feature Extraction)}:
+	\begin{itemize}
+		\item Tách thành phần harmonic bằng HPSS (Harmonic-Percussive Source Separation)
+		\item Trích xuất đặc trưng: Chroma CQT (12 chiều), Tonnetz (6 chiều), Spectral Contrast (7 chiều)
+		\item Tính đạo hàm bậc 1 và bậc 2 (delta features) để bắt động thái thay đổi
+		\item Áp dụng median filter để giảm nhiễu
+		\item Chuẩn hóa L2 normalization
+		\item Tổng cộng: $(12 + 6 + 7) \times 3 = 75$ chiều đặc trưng cho mỗi frame
+	\end{itemize}
+	
+	\item \textbf{Căn chỉnh nhãn}: Ánh xạ nhãn hợp âm từ file .lab sang từng frame thời gian dựa trên hop length.
+	
+	\item \textbf{Huấn luyện HMM}:
+	\begin{itemize}
+		\item Ước lượng phân phối ban đầu $\pi$ từ trạng thái đầu tiên của mỗi bài
+		\item Tính ma trận chuyển trạng thái $A$ với Laplace smoothing ($\epsilon = 10^{-8}$)
+		\item Huấn luyện Gaussian Mixture Models (GMM) cho mỗi trạng thái làm mô hình phát xạ $B$
+	\end{itemize}
+	
+	\item \textbf{Dự đoán bằng Viterbi}: Áp dụng thuật toán Viterbi trong miền log-probability để tìm chuỗi hợp âm có xác suất cao nhất, sau đó làm mịn bằng median filter.
+	
+	\item \textbf{Đánh giá (Evaluation)}: Tính accuracy, vẽ confusion matrix để đánh giá hiệu năng trên test set.
+\end{enumerate}
+
+\subsection{Xử lý tín hiệu số (DSP) trong trích xuất đặc trưng}
+Phần này trình bày chi tiết cách các kỹ thuật xử lý tín hiệu số được áp dụng trong code để chuyển đổi tín hiệu âm thanh thô thành các đặc trưng phù hợp cho mô hình học máy.
+
+\subsubsection{Sample Rate (Tần số lấy mẫu)}
+\textbf{Sample Rate} là số lượng mẫu (samples) được ghi lại mỗi giây từ tín hiệu âm thanh liên tục. Trong code, giá trị được thiết lập là:
+\begin{verbatim}
+SAMPLE_RATE = 22050  # Hz (samples/second)
+\end{verbatim}
+
+\textbf{Ý nghĩa và lựa chọn:}
+\begin{itemize}
+    \item Theo định lý Nyquist-Shannon, để tái tạo hoàn hảo tín hiệu gốc, tần số lấy mẫu phải ít nhất gấp đôi tần số cao nhất trong tín hiệu. Với $f_s = 22050$ Hz, ta có thể biểu diễn chính xác các tần số lên đến $\frac{22050}{2} = 11025$ Hz.
+    \item Tai người nghe được từ khoảng 20 Hz đến 20 kHz. Tuy nhiên, với phân tích âm nhạc, đặc biệt là nhận diện hợp âm, các thành phần tần số quan trọng thường nằm dưới 10 kHz. Do đó, 22.05 kHz là một lựa chọn phù hợp giúp giảm khối lượng dữ liệu (so với 44.1 kHz chuẩn CD) mà vẫn giữ được thông tin âm nhạc cần thiết.
+    \item Khi gọi \texttt{librosa.load(audio\_path, sr=22050)}, nếu file âm thanh gốc có sample rate khác (ví dụ 44.1 kHz), \texttt{librosa} sẽ tự động resample (lấy mẫu lại) về 22050 Hz.
+\end{itemize}
+
+\textbf{Ảnh hưởng đến pipeline:}
+\begin{itemize}
+    \item Sample rate quyết định độ phân giải tần số của tín hiệu số. 
+    \item Nó ảnh hưởng trực tiếp đến số lượng mẫu trong tín hiệu: với một bài hát dài $T$ giây, số mẫu là $N = T \times f_s$.
+    \item Ví dụ: một bài hát 3 phút (180 giây) sẽ có $180 \times 22050 = 3{,}969{,}000$ mẫu.
+\end{itemize}
+
+\subsubsection{Hop Length (Độ dịch chuyển cửa sổ)}
+\textbf{Hop Length} xác định số mẫu mà cửa sổ phân tích dịch chuyển giữa các frame liên tiếp khi tính toán biến đổi thời gian-tần số (như STFT hoặc CQT). Trong code:
+\begin{verbatim}
+HOP_LENGTH = 512  # samples
+\end{verbatim}
+
+\textbf{Ý nghĩa vật lý:}
+\begin{itemize}
+    \item Hop length quyết định độ phân giải thời gian của các đặc trưng được trích xuất. 
+    \item Với $h = 512$ mẫu và $f_s = 22050$ Hz, khoảng thời gian giữa hai frame liên tiếp là:
+    \begin{equation}
+    \Delta t = \frac{h}{f_s} = \frac{512}{22050} \approx 0.0232 \text{ giây} \approx 23.2 \text{ ms}
+    \end{equation}
+    \item Do đó, ta thu được khoảng $\frac{1}{0.0232} \approx 43$ frame mỗi giây (như ghi chú trong code: \texttt{\# (\textasciitilde43 frames/sec)}).
+\end{itemize}
+
+\textbf{Trade-off giữa độ phân giải thời gian và tính toán:}
+\begin{itemize}
+    \item \textit{Hop length nhỏ} (ví dụ 128): Nhiều frame hơn mỗi giây $\Rightarrow$ độ phân giải thời gian cao (theo dõi biến đổi nhanh), nhưng tăng khối lượng tính toán và dữ liệu.
+    \item \textit{Hop length lớn} (ví dụ 2048): Ít frame hơn $\Rightarrow$ giảm tính toán, nhưng mất mát thông tin biến đổi nhanh (độ phân giải thời gian thấp).
+    \item Giá trị 512 là một cân bằng phổ biến: đủ chi tiết để bắt được sự thay đổi hợp âm (thường diễn ra trong vài trăm ms) mà không quá nặng về tính toán.
+\end{itemize}
+
+\subsubsection{Quá trình trích xuất đặc trưng từ tín hiệu âm thanh}
+Trong hàm \texttt{extract\_features} của module \texttt{feature\_extraction.py}, các bước DSP chính được thực hiện như sau:
+
+\textbf{Bước 1: Nạp và resample tín hiệu}
+\begin{verbatim}
+y, sr = librosa.load(audio_path, sr=SAMPLE_RATE)
+\end{verbatim}
+\begin{itemize}
+    \item \texttt{y}: mảng numpy 1D chứa các giá trị biên độ của tín hiệu âm thanh (thường được chuẩn hoá trong khoảng $[-1, 1]$).
+    \item Chiều dài: $N = \text{len}(y)$ mẫu.
+\end{itemize}
+
+\textbf{Bước 2: Harmonic-Percussive Source Separation (HPSS)}
+\begin{verbatim}
+y_harm, _ = librosa.effects.hpss(y, margin=2.0)
+\end{verbatim}
+\begin{itemize}
+    \item HPSS tách tín hiệu thành hai thành phần: harmonic (giai điệu, hợp âm) và percussive (nhịp, trống).
+    \item Chỉ sử dụng thành phần harmonic \texttt{y\_harm} cho việc trích xuất đặc trưng hợp âm, giúp loại bỏ nhiễu từ nhạc cụ gõ.
+    \item Tham số \texttt{margin=2.0} kiểm soát mức độ tách biệt giữa hai thành phần.
+\end{itemize}
+
+\textbf{Bước 3: Trích xuất Chroma CQT}
+\begin{verbatim}
+chroma = librosa.feature.chroma_cqt(
+    y=y_harm, sr=sr,
+    hop_length=hop_length,
+    bins_per_octave=48
+).T
+\end{verbatim}
+\begin{itemize}
+    \item \textbf{CQT} (Constant-Q Transform) là một biến đổi thời gian-tần số có độ phân giải tần số theo thang logarit, phù hợp với âm nhạc vì các nốt nhạc cách nhau theo tỷ lệ logarit.
+    \item Chromagram tập hợp năng lượng của tất cả các octave về 12 lớp âm (pitch class): C, C\#, D, ..., B.
+    \item \texttt{bins\_per\_octave=48} cho độ phân giải cao (4 bins cho mỗi semitone).
+    \item Đầu ra: ma trận $(12 \times M)$ với $M$ là số frame, sau đó transpose thành $(M \times 12)$.
+\end{itemize}
+
+\textbf{Bước 4: Trích xuất Tonnetz}
+\begin{verbatim}
+tonnetz = librosa.feature.tonnetz(
+    y=y_harm, sr=sr, hop_length=hop_length
+).T
+\end{verbatim}
+\begin{itemize}
+    \item Tonnetz (Tonal Centroid Features) biểu diễn mối quan hệ hài hòa giữa các nốt nhạc dựa trên không gian tonal.
+    \item Đầu ra: ma trận $(6 \times M)$, transpose thành $(M \times 6)$.
+    \item Cung cấp thông tin bổ sung về cấu trúc hòa âm.
+\end{itemize}
+
+\textbf{Bước 5: Trích xuất Spectral Contrast}
+\begin{verbatim}
+spectral_contrast = librosa.feature.spectral_contrast(
+    y=y_harm, sr=sr, hop_length=hop_length, n_bands=6
+).T
+\end{verbatim}
+\begin{itemize}
+    \item Spectral contrast đo sự chênh lệch giữa đỉnh và đáy trong mỗi băng tần số.
+    \item Giúp phân biệt các texture âm thanh khác nhau.
+    \item Đầu ra: ma trận $(7 \times M)$ (6 bands + 1 for low frequencies), transpose thành $(M \times 7)$.
+\end{itemize}
+
+\textbf{Bước 6: Median Filtering}
+\begin{verbatim}
+chroma = scipy_median_filter(chroma, size=(3, 1))
+tonnetz = scipy_median_filter(tonnetz, size=(3, 1))
+spectral_contrast = scipy_median_filter(spectral_contrast, size=(3, 1))
+\end{verbatim}
+\begin{itemize}
+    \item Áp dụng median filter với cửa sổ kích thước 3 theo chiều thời gian để giảm nhiễu ngắn hạn.
+    \item Giữ được các biên (edges) tốt hơn so với mean filter.
+\end{itemize}
+
+\textbf{Bước 7: Chuẩn hóa L2}
+\begin{verbatim}
+chroma = librosa.util.normalize(chroma, norm=2, axis=1)
+tonnetz = librosa.util.normalize(tonnetz, norm=2, axis=1)
+spectral_contrast = librosa.util.normalize(spectral_contrast, norm=2, axis=1)
+\end{verbatim}
+\begin{itemize}
+    \item Mỗi vector đặc trưng (hàng) được chuẩn hóa L2: $\|\mathbf{x}\|_2 = 1$.
+    \item Giúp đặc trưng không bị ảnh hưởng bởi độ lớn tổng thể của tín hiệu (loudness).
+\end{itemize}
+
+\textbf{Bước 8: Kết hợp đặc trưng cơ sở}
+\begin{verbatim}
+base = np.hstack([chroma, tonnetz, spectral_contrast])
+\end{verbatim}
+\begin{itemize}
+    \item Ghép nối 3 loại đặc trưng theo chiều cột: $(M \times 12) + (M \times 6) + (M \times 7) = (M \times 25)$.
+\end{itemize}
+
+\textbf{Bước 9: Tính đạo hàm (Delta Features)}
+\begin{verbatim}
+delta = librosa.feature.delta(base.T)
+delta2 = librosa.feature.delta(base.T, order=2)
+\end{verbatim}
+\begin{itemize}
+    \item \textbf{Delta features} (đạo hàm bậc 1): bắt sự thay đổi của đặc trưng theo thời gian.
+    \item \textbf{Delta-delta features} (đạo hàm bậc 2): bắt gia tốc của sự thay đổi.
+    \item Được tính bằng convolution với kernel cố định, thường dùng trong speech/audio recognition.
+    \item Cả hai đều có shape $(25 \times M)$, sau đó transpose về $(M \times 25)$.
+\end{itemize}
+
+\textbf{Bước 10: Ghép nối cuối cùng}
+\begin{verbatim}
+features = np.hstack([base, delta, delta2])
+\end{verbatim}
+\begin{itemize}
+    \item Kết hợp đặc trưng cơ sở và delta features: $(M \times 25) + (M \times 25) + (M \times 25) = (M \times 75)$.
+    \item Mỗi frame được biểu diễn bởi vector 75 chiều chứa thông tin về spectral content, tonal harmony, và động thái thay đổi.
+\end{itemize}
+
+\subsubsection{Căn chỉnh nhãn với frame}
+Sau khi có ma trận đặc trưng $(M \times 75)$, cần ánh xạ nhãn hợp âm (từ file \texttt{.lab}) sang từng frame. Quá trình này được thực hiện trong hàm \texttt{load\_labels}:
+
+\begin{verbatim}
+def load_labels(lab_file, n_frames, hop=512, sr=22050):
+    labels = ["N"] * n_frames
+    with open(lab_file, "r") as f:
+        for line in f:
+            start, end, chord_raw = ...
+            chord = simplify_chord(chord_raw)
+            s = int(start * sr / hop)
+            e = int(end * sr / hop)
+            for i in range(s, min(e, n_frames)):
+                labels[i] = chord
+    return labels
+\end{verbatim}
+
+\begin{itemize}
+    \item File \texttt{.lab} chứa các dòng dạng: \texttt{start\_time end\_time chord\_label}.
+    \item Với mỗi khoảng thời gian $[\text{start}, \text{end})$ trong file nhãn, tính chỉ số frame tương ứng:
+    \begin{align}
+    i_{\text{start}} &= \left\lfloor \frac{\text{start} \times f_s}{h} \right\rfloor \\
+    i_{\text{end}} &= \left\lfloor \frac{\text{end} \times f_s}{h} \right\rfloor
+    \end{align}
+    \item Gán nhãn hợp âm (đã được đơn giản hóa) cho tất cả các frame trong khoảng $[i_{\text{start}}, i_{\text{end}})$.
+\end{itemize}
+
+\textbf{Ví dụ minh hoạ:}
+\begin{itemize}
+    \item Giả sử một đoạn hợp âm C:maj kéo dài từ giây thứ 0.5 đến 2.0.
+    \item Với hop length 512 và sample rate 22050:
+    \begin{align}
+    i_{\text{start}} &= \left\lfloor \frac{0.5 \times 22050}{512} \right\rfloor = \left\lfloor 21.53 \right\rfloor = 21 \\
+    i_{\text{end}} &= \left\lfloor \frac{2.0 \times 22050}{512} \right\rfloor = \left\lfloor 86.13 \right\rfloor = 86
+    \end{align}
+    \item Các frame có index từ 21 đến 85 (65 frames) sẽ được gán nhãn \texttt{C:maj}.
+\end{itemize}
+
+\subsection{Triển khai chi tiết và các lựa chọn kỹ thuật}
+
+\subsubsection{Đơn giản hoá không gian trạng thái}
+\begin{itemize}
+    \item Nhãn gốc trong dataset có thể rất đa dạng (ví dụ: \texttt{C:maj7}, \texttt{Db:min}, \texttt{G:sus4}, \texttt{F\#:dim}).
+    \item Hàm \texttt{simplify\_chord} trong \texttt{preprocessing.py} ánh xạ về 25 trạng thái:
+    \begin{itemize}
+        \item 24 hợp âm cơ bản: 12 nốt $\times$ \{major, minor\}
+        \item Trạng thái \texttt{N}: không có hợp âm (silence, noise, no-chord)
+    \end{itemize}
+    \item Ánh xạ enharmonic: Db $\rightarrow$ C\#, Eb $\rightarrow$ D\#, Gb $\rightarrow$ F\#, Ab $\rightarrow$ G\#, Bb $\rightarrow$ A\# để tránh trùng lặp.
+    \item Các hợp âm phức tạp (7th, 9th, sus, dim, aug) được đơn giản hóa về major hoặc minor tùy theo chord quality.
+    \item Lý do: giảm độ phức tạp mô hình (25 trạng thái thay vì hàng trăm), giúp GMM huấn luyện tốt hơn với dữ liệu hạn chế (40 bài training).
+\end{itemize}
+
+\subsubsection{Tính toán tham số HMM}
+Trong module \texttt{training.py}, hàm \texttt{calc\_hmm\_parameters} ước lượng các tham số:
+
+\textbf{1. Phân phối ban đầu $\pi$:}
+\begin{verbatim}
+pi = np.zeros(n_states)
+for label_seq in label_list:
+    first = CHORD_TO_ID[simplify_chord(label_seq[0])]
+    pi[first] += 1
+pi = (pi + epsilon) / (pi + epsilon).sum()
+\end{verbatim}
+\begin{itemize}
+    \item Đếm trạng thái đầu tiên của mỗi bài hát trong training set.
+    \item Thêm smoothing $\epsilon = 10^{-8}$ để tránh xác suất bằng 0.
+    \item Chuẩn hóa: $\sum_{i=1}^{N} \pi_i = 1$.
+\end{itemize}
+
+\textbf{2. Ma trận chuyển trạng thái $A$:}
+\begin{verbatim}
+A = np.zeros((n_states, n_states))
+for label_seq in label_list:
+    for current, nxt in zip(label_seq[:-1], label_seq[1:]):
+        cur_id = CHORD_TO_ID[simplify_chord(current)]
+        nxt_id = CHORD_TO_ID[simplify_chord(nxt)]
+        A[cur_id, nxt_id] += 1
+A = (A + epsilon) / (A + epsilon).sum(axis=1, keepdims=True)
+\end{verbatim}
+\begin{itemize}
+    \item Đếm số lần chuyển từ trạng thái $i$ sang trạng thái $j$ trong tất cả các bài hát.
+    \item Thêm Laplace smoothing $\epsilon = 10^{-8}$ cho mỗi phần tử.
+    \item Chuẩn hóa theo hàng: $\sum_{j=1}^{N} A_{ij} = 1, \forall i$.
+    \item Smoothing giúp tránh log(0) trong Viterbi và cho phép các transition hiếm vẫn có khả năng xảy ra.
+\end{itemize}
+
+\textbf{3. Mô hình phát xạ $B$ (GMM):}
+Hàm \texttt{train\_GMM} huấn luyện một GMM cho mỗi trạng thái:
+\begin{verbatim}
+gmm = GaussianMixture(
+    n_components=current_n_components,
+    covariance_type='full',
+    max_iter=100,
+    random_state=72,
+    n_init=3
+)
+gmm.fit(X_state)
+\end{verbatim}
+\begin{itemize}
+    \item Tập hợp tất cả các vector đặc trưng 75 chiều thuộc cùng một trạng thái.
+    \item Số components: 1-3 (được điều chỉnh tự động nếu trạng thái có ít samples).
+    \item \texttt{covariance\_type='full'}: ma trận hiệp phương sai đầy đủ $(75 \times 75)$ để bắt được tương quan giữa các chiều đặc trưng.
+    \item GMM cho phép mô hình hóa phân phối multimodal: cùng một hợp âm có thể được chơi theo nhiều cách khác nhau (voicing, inversion, instrumentation).
+    \item Nếu một trạng thái không có đủ samples, số components được giảm xuống hoặc GMM không được huấn luyện (gán \texttt{None}).
+\end{itemize}
+
+\subsubsection{Thuật toán Viterbi trong miền log}
+Module \texttt{evaluation.py} implement hàm \texttt{viterbi\_log} để tìm chuỗi trạng thái tối ưu:
+
+\begin{verbatim}
+def viterbi_log(pi, A, log_B):
+    n_states = A.shape[0]
+    T = log_B.shape[1]
+    delta = np.zeros((T, n_states))
+    phi = np.zeros((T, n_states), dtype=int)
+    
+    log_pi = np.log(pi + 1e-10)
+    log_A = np.log(A + 1e-10)
+    
+    # Khởi tạo
+    delta[0, :] = log_pi + log_B[:, 0]
+    
+    # Đệ quy
+    for t in range(1, T):
+        for j in range(n_states):
+            temp = delta[t-1, :] + log_A[:, j]
+            delta[t, j] = np.max(temp) + log_B[j, t]
+            phi[t, j] = np.argmax(temp)
+    
+    # Backtracking
+    q_star = np.zeros(T, dtype=int)
+    q_star[T-1] = np.argmax(delta[T-1, :])
+    for t in range(T-2, -1, -1):
+        q_star[t] = phi[t+1, q_star[t+1]]
+    
+    return q_star
+\end{verbatim}
+
+\begin{itemize}
+    \item Viterbi tìm $\arg\max_{s_1, \ldots, s_T} P(s_1, \ldots, s_T \mid x_1, \ldots, x_T)$.
+    \item Tất cả tính toán trong miền log để tránh underflow khi nhân nhiều xác suất nhỏ:
+    \begin{equation}
+    \log P(s_1, \ldots, s_T, x_1, \ldots, x_T) = \log \pi_{s_1} + \sum_{t=2}^{T} \log A_{s_{t-1}, s_t} + \sum_{t=1}^{T} \log B_{s_t}(x_t)
+    \end{equation}
+    \item GMM cung cấp \texttt{score\_samples()} trả về log-likelihood trực tiếp.
+    \item Ma trận $\delta[t, j]$ lưu log-xác suất cao nhất để đạt trạng thái $j$ tại thời điểm $t$.
+    \item Ma trận $\phi[t, j]$ lưu trạng thái trước đó trên đường đi tối ưu (backpointer).
+    \item Độ phức tạp: $O(T \times N^2)$ với $T$ là số frame, $N = 25$ trạng thái.
+\end{itemize}
+
+\subsubsection{Post-processing với Median Filter}
+Sau khi Viterbi cho ra chuỗi trạng thái dự đoán, áp dụng median filter để làm mịn:
+\begin{verbatim}
+predicted_state_ids = viterbi_log(pi, A, log_B)
+predicted_state_ids = medfilt(predicted_state_ids, kernel_size=5)
+\end{verbatim}
+\begin{itemize}
+    \item Median filter với kernel size 5 loại bỏ các outlier (trạng thái nhảy đột ngột do nhiễu).
+    \item Giữ được các biên hợp âm thực sự tốt hơn so với smoothing filter khác.
+    \item Cải thiện tính mượt mà của chuỗi hợp âm dự đoán.
+\end{itemize}
+
+\subsection{Tóm tắt workflow}
+Quy trình hoàn chỉnh từ raw audio đến chord prediction:
+
+\begin{enumerate}
+    \item \textbf{EDA}: Phân tích dataset (50 bài Beatles) $\rightarrow$ hiểu phân phối chord, transition patterns
+    \item \textbf{Split}: 40 bài train, 10 bài test (random seed=72)
+    \item \textbf{Feature Extraction}: Audio $\rightarrow$ HPSS $\rightarrow$ Chroma + Tonnetz + Spectral Contrast $\rightarrow$ Median Filter $\rightarrow$ L2 Norm $\rightarrow$ Delta Features $\rightarrow$ 75-dim vectors
+    \item \textbf{Label Alignment}: .lab files $\rightarrow$ simplify chords $\rightarrow$ map to frame indices $\rightarrow$ 25 state IDs
+    \item \textbf{HMM Training}: Count transitions $\rightarrow$ $\pi$, $A$ with smoothing; Train GMMs $\rightarrow$ $B$
+    \item \textbf{Prediction}: Test audio $\rightarrow$ Extract features $\rightarrow$ Viterbi (log-domain) $\rightarrow$ Median filter $\rightarrow$ Chord sequence
+    \item \textbf{Evaluation}: Compare predictions vs ground truth $\rightarrow$ Accuracy, Confusion Matrix
+\end{enumerate}
+
+Các phần tiếp theo sẽ trình bày chi tiết về cơ sở lý thuyết HMM, thuật toán Viterbi, kết quả thực nghiệm và đánh giá.
+

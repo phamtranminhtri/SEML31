@@ -1,0 +1,59 @@
+\babel@toc {vietnamese}{}\relax 
+\contentsline {section}{\numberline {1}Giới thiệu}{5}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Bối cảnh}{5}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Dataset}{5}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Tổng quan phương pháp}{5}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Xử lý tín hiệu số (DSP) trong trích xuất đặc trưng}{6}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Sample Rate (Tần số lấy mẫu)}{6}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Hop Length (Độ dịch chuyển cửa sổ)}{7}{subsubsection.1.4.2}%
+\contentsline {subsubsection}{\numberline {1.4.3}Quá trình trích xuất đặc trưng từ tín hiệu âm thanh}{8}{subsubsection.1.4.3}%
+\contentsline {subsubsection}{\numberline {1.4.4}Căn chỉnh nhãn với frame}{11}{subsubsection.1.4.4}%
+\contentsline {subsection}{\numberline {1.5}Triển khai chi tiết và các lựa chọn kỹ thuật}{12}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Đơn giản hoá không gian trạng thái}{12}{subsubsection.1.5.1}%
+\contentsline {subsubsection}{\numberline {1.5.2}Tính toán tham số HMM}{12}{subsubsection.1.5.2}%
+\contentsline {subsubsection}{\numberline {1.5.3}Thuật toán Viterbi trong miền log}{14}{subsubsection.1.5.3}%
+\contentsline {subsubsection}{\numberline {1.5.4}Post-processing với Median Filter}{15}{subsubsection.1.5.4}%
+\contentsline {subsection}{\numberline {1.6}Tóm tắt workflow}{15}{subsection.1.6}%
+\contentsline {section}{\numberline {2}Cơ sở lý thuyết}{16}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Mô hình Markov ẩn (Hidden Markov Model - HMM)}{16}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Định nghĩa và thành phần}{16}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Giả định Markov}{16}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Xác suất kết hợp}{17}{subsubsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.2}Ba bài toán cơ bản của HMM}{17}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Bài toán 1: Đánh giá (Evaluation)}{17}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Bài toán 2: Giải mã (Decoding)}{18}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Bài toán 3: Học (Learning)}{18}{subsubsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.3}Gaussian Mixture Model (GMM) cho mô hình phát xạ}{18}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Lý do sử dụng GMM}{18}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Định nghĩa GMM}{19}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}Huấn luyện GMM}{19}{subsubsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.4}Thuật toán Viterbi}{20}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Bài toán}{20}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Ý tưởng chính}{20}{subsubsection.2.4.2}%
+\contentsline {subsubsection}{\numberline {2.4.3}Công thức đệ quy}{20}{subsubsection.2.4.3}%
+\contentsline {subsubsection}{\numberline {2.4.4}Độ phức tạp tính toán}{21}{subsubsection.2.4.4}%
+\contentsline {subsubsection}{\numberline {2.4.5}Ví dụ minh hoạ nhỏ}{21}{subsubsection.2.4.5}%
+\contentsline {section}{\numberline {3}Kết quả và đánh giá}{23}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Cấu hình thực nghiệm}{23}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Dataset}{23}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Tham số mô hình}{23}{subsubsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.2}Quy trình huấn luyện}{24}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Bước 1: Trích xuất đặc trưng và căn chỉnh nhãn}{24}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Bước 2: Tính toán tham số HMM}{24}{subsubsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.3}Quy trình dự đoán}{24}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Bước 1: Trích xuất đặc trưng}{25}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Bước 2: Tính log-likelihood}{25}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Bước 3: Áp dụng Viterbi}{25}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Bước 4: Chuyển đổi về nhãn hợp âm}{25}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Bước 5: Đánh giá}{25}{subsubsection.3.3.5}%
+\contentsline {subsection}{\numberline {3.4}Phân tích kết quả}{26}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Thống kê hợp âm dự đoán}{26}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Ưu điểm của phương pháp}{26}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Hạn chế và hướng cải thiện}{27}{subsubsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.5}Đề xuất cải tiến}{27}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Kết luận}{29}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Tóm tắt công việc}{29}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Ý nghĩa và ứng dụng}{29}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Bài học kinh nghiệm}{30}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Hướng phát triển tương lai}{30}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Lời kết}{31}{subsection.4.5}%

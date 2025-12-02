@@ -1,0 +1,237 @@
+\section{Cơ sở lý thuyết}
+
+\subsection{Mô hình Markov ẩn (Hidden Markov Model - HMM)}
+
+\subsubsection{Định nghĩa và thành phần}
+Hidden Markov Model là một mô hình xác suất thống kê được sử dụng để mô hình hoá các chuỗi có cấu trúc tuần tự, trong đó trạng thái thực sự (hidden state) không quan sát được trực tiếp, mà chỉ có thể suy luận thông qua các quan sát (observations).
+
+Một HMM được định nghĩa bởi bộ năm thành phần $\lambda = (S, O, A, B, \pi)$:
+
+\begin{itemize}
+    \item \textbf{Tập trạng thái ẩn $S$}: $S = \{s_1, s_2, \ldots, s_N\}$ với $N$ là số trạng thái. Trong bài toán của chúng ta, $N = 25$ trạng thái (24 hợp âm cơ bản: 12 nốt $\times$ \{maj, min\} + trạng thái \texttt{N} cho no-chord).
+    
+    \item \textbf{Tập quan sát $O$}: Không gian các giá trị quan sát có thể. Trong trường hợp này, mỗi quan sát là một vector đặc trưng 75 chiều: $o_t \in \mathbb{R}^{75}$ (bao gồm chroma, tonnetz, spectral contrast và các delta features).
+    
+    \item \textbf{Ma trận chuyển trạng thái $A$}: Ma trận $N \times N$ với $A_{ij} = P(s_{t+1} = j \mid s_t = i)$ biểu diễn xác suất chuyển từ trạng thái $i$ sang trạng thái $j$. Thoả mãn:
+    \begin{equation}
+    \sum_{j=1}^{N} A_{ij} = 1, \quad \forall i \in \{1, \ldots, N\}
+    \end{equation}
+    
+    \item \textbf{Mô hình phát xạ $B$}: Tập hợp các phân phối xác suất $B = \{b_1, b_2, \ldots, b_N\}$, trong đó $b_i(o)$ là xác suất (hoặc mật độ xác suất) quan sát được $o$ khi đang ở trạng thái $i$. Trong implementation của chúng ta:
+    \begin{equation}
+    b_i(o) = P(o_t = o \mid s_t = i) \text{ được mô hình hoá bởi GMM}_i(o)
+    \end{equation}
+    
+    \item \textbf{Phân phối trạng thái ban đầu $\pi$}: Vector $N$ chiều với $\pi_i = P(s_1 = i)$ là xác suất trạng thái ban đầu là $i$. Thoả mãn:
+    \begin{equation}
+    \sum_{i=1}^{N} \pi_i = 1
+    \end{equation}
+\end{itemize}
+
+\subsubsection{Giả định Markov}
+HMM dựa trên hai giả định quan trọng:
+
+\textbf{1. Tính Markov bậc nhất (First-order Markov Property):}
+\begin{equation}
+P(s_t \mid s_1, s_2, \ldots, s_{t-1}) = P(s_t \mid s_{t-1})
+\end{equation}
+Trạng thái hiện tại chỉ phụ thuộc vào trạng thái trước đó, không phụ thuộc vào các trạng thái xa hơn trong quá khứ.
+
+\textbf{Ý nghĩa trong nhận diện hợp âm:} Hợp âm hiện tại có xu hướng liên quan mật thiết đến hợp âm ngay trước đó (ví dụ: trong tiến trình I-IV-V-I). Mặc dù giả định này là đơn giản hoá (trong thực tế, cấu trúc âm nhạc có thể phụ thuộc vào ngữ cảnh dài hơn), nhưng nó đủ hiệu quả cho nhiều ứng dụng và giúp giảm độ phức tạp tính toán.
+
+\textbf{2. Tính độc lập quan sát (Output Independence):}
+\begin{equation}
+P(o_t \mid s_1, \ldots, s_T, o_1, \ldots, o_{t-1}, o_{t+1}, \ldots, o_T) = P(o_t \mid s_t)
+\end{equation}
+Quan sát tại thời điểm $t$ chỉ phụ thuộc vào trạng thái tại $t$, độc lập với các quan sát và trạng thái khác.
+
+\textbf{Ý nghĩa:} Vector chroma tại một frame chỉ được sinh ra từ hợp âm đang diễn ra tại frame đó, không chịu ảnh hưởng trực tiếp từ chroma của frame trước/sau.
+
+\subsubsection{Xác suất kết hợp}
+Với một chuỗi quan sát $O = (o_1, o_2, \ldots, o_T)$ và một chuỗi trạng thái ẩn $S = (s_1, s_2, \ldots, s_T)$, xác suất kết hợp được tính như sau:
+\begin{equation}
+P(O, S \mid \lambda) = \pi_{s_1} \cdot b_{s_1}(o_1) \cdot \prod_{t=2}^{T} A_{s_{t-1}, s_t} \cdot b_{s_t}(o_t)
+\end{equation}
+
+Trong miền log (để tránh underflow):
+\begin{equation}
+\log P(O, S \mid \lambda) = \log \pi_{s_1} + \log b_{s_1}(o_1) + \sum_{t=2}^{T} \left[ \log A_{s_{t-1}, s_t} + \log b_{s_t}(o_t) \right]
+\end{equation}
+
+\subsection{Ba bài toán cơ bản của HMM}
+
+\subsubsection{Bài toán 1: Đánh giá (Evaluation)}
+\textbf{Vấn đề:} Cho mô hình $\lambda$ và chuỗi quan sát $O$, tính $P(O \mid \lambda)$.
+
+\textbf{Giải pháp:} Thuật toán Forward-Backward (hoặc chỉ Forward).
+
+\textbf{Ứng dụng:} Đánh giá mức độ phù hợp của một chuỗi quan sát với mô hình.
+
+\subsubsection{Bài toán 2: Giải mã (Decoding)}
+\textbf{Vấn đề:} Cho mô hình $\lambda$ và chuỗi quan sát $O$, tìm chuỗi trạng thái $S^* = \arg\max_S P(S \mid O, \lambda)$ có xác suất cao nhất.
+
+\textbf{Giải pháp:} Thuật toán Viterbi (sẽ trình bày chi tiết ở phần sau).
+
+\textbf{Ứng dụng:} Đây chính là bài toán chúng ta giải quyết trong nhận diện hợp âm.
+
+\subsubsection{Bài toán 3: Học (Learning)}
+\textbf{Vấn đề:} Cho tập chuỗi quan sát, ước lượng tham số $\lambda$ sao cho $P(O \mid \lambda)$ đạt cực đại.
+
+\textbf{Giải pháp:} Thuật toán Baum-Welch (Expectation-Maximization cho HMM).
+
+\textbf{Trong project này:} Chúng ta không dùng Baum-Welch vì có sẵn nhãn (supervised learning). Thay vào đó, tham số được ước lượng trực tiếp từ dữ liệu có nhãn:
+\begin{itemize}
+    \item $\hat{\pi}_i = \frac{\text{số bài hát bắt đầu bằng hợp âm } i}{\text{tổng số bài hát}}$
+    \item $\hat{A}_{ij} = \frac{\text{số lần chuyển từ } i \text{ sang } j}{\text{số lần xuất hiện trạng thái } i}$
+    \item $\hat{b}_i(o)$: huấn luyện GMM trên tất cả các vector chroma tương ứng với trạng thái $i$
+\end{itemize}
+
+\subsection{Gaussian Mixture Model (GMM) cho mô hình phát xạ}
+
+\subsubsection{Lý do sử dụng GMM}
+Vector đặc trưng 75 chiều của cùng một hợp âm có thể có phân phối phức tạp do:
+\begin{itemize}
+    \item Nhiều cách voicing khác nhau (inversion, doubling notes)
+    \item Âm sắc nhạc cụ đa dạng
+    \item Nhiễu, harmonics phụ
+    \item Biến thiên trong spectral contrast và tonnetz tùy theo instrumentation
+    \item Động thái thay đổi được bắt bởi delta features
+\end{itemize}
+
+GMM cho phép mô hình hoá phân phối multimodal (nhiều đỉnh) bằng cách kết hợp nhiều Gaussian thành phần. Với không gian đặc trưng 75 chiều, việc sử dụng số lượng components nhỏ (1-3) giúp tránh overfitting trong khi vẫn bắt được sự đa dạng của dữ liệu.
+
+\subsubsection{Định nghĩa GMM}
+Một GMM với $K$ thành phần có mật độ xác suất:
+\begin{equation}
+b_i(o) = \sum_{k=1}^{K} w_{ik} \cdot \mathcal{N}(o \mid \mu_{ik}, \Sigma_{ik})
+\end{equation}
+trong đó:
+\begin{itemize}
+    \item $w_{ik}$: trọng số (mixing coefficient) của thành phần $k$ trong GMM của trạng thái $i$, với $\sum_{k=1}^{K} w_{ik} = 1$
+    \item $\mu_{ik} \in \mathbb{R}^{75}$: vector trung bình của thành phần $k$
+    \item $\Sigma_{ik} \in \mathbb{R}^{75 \times 75}$: ma trận hiệp phương sai (covariance matrix) của thành phần $k$
+    \item $\mathcal{N}(o \mid \mu, \Sigma)$: phân phối Gaussian đa biến:
+    \begin{equation}
+    \mathcal{N}(o \mid \mu, \Sigma) = \frac{1}{(2\pi)^{D/2} |\Sigma|^{1/2}} \exp\left( -\frac{1}{2} (o - \mu)^T \Sigma^{-1} (o - \mu) \right)
+    \end{equation}
+\end{itemize}
+
+\subsubsection{Huấn luyện GMM}
+Trong code, mỗi GMM được huấn luyện bằng thuật toán Expectation-Maximization (EM) từ \texttt{sklearn.mixture.GaussianMixture}:
+\begin{verbatim}
+gmm = GaussianMixture(
+    n_components=current_n_components,
+    covariance_type='full',
+    max_iter=100,
+    random_state=72,
+    n_init=3
+)
+gmm.fit(X_state)
+\end{verbatim}
+
+\begin{itemize}
+    \item \texttt{n\_components}: số thành phần Gaussian, được điều chỉnh tự động từ 1-3 tùy theo số lượng samples của mỗi trạng thái. Nếu một trạng thái có ít samples, số components sẽ được giảm xuống để tránh overfitting.
+    \item \texttt{covariance\_type='full'}: ma trận hiệp phương sai đầy đủ $(75 \times 75)$ để bắt được tương quan giữa các chiều đặc trưng (không giả định độc lập giữa các chiều)
+    \item \texttt{random\_state=72}: đảm bảo tính tái lập của kết quả
+    \item \texttt{n\_init=3}: số lần khởi tạo ngẫu nhiên khác nhau, chọn kết quả tốt nhất
+    \item Phương thức \texttt{gmm.score\_samples(o)}: trả về $\log b_i(o)$ cho vector quan sát $o$
+\end{itemize}
+
+\subsection{Thuật toán Viterbi}
+
+\subsubsection{Bài toán}
+Cho:
+\begin{itemize}
+    \item Mô hình HMM $\lambda = (S, O, A, B, \pi)$
+    \item Chuỗi quan sát $O = (o_1, o_2, \ldots, o_T)$
+\end{itemize}
+
+Tìm chuỗi trạng thái $S^* = (s_1^*, s_2^*, \ldots, s_T^*)$ sao cho:
+\begin{equation}
+S^* = \arg\max_{S} P(S \mid O, \lambda) = \arg\max_{S} P(S, O \mid \lambda)
+\end{equation}
+
+\subsubsection{Ý tưởng chính}
+Viterbi sử dụng quy hoạch động (dynamic programming) để tránh liệt kê tất cả $N^T$ chuỗi trạng thái có thể.
+
+Định nghĩa biến trung gian:
+\begin{equation}
+V_t(j) = \max_{s_1, \ldots, s_{t-1}} P(s_1, \ldots, s_{t-1}, s_t = j, o_1, \ldots, o_t \mid \lambda)
+\end{equation}
+$V_t(j)$ là xác suất cao nhất của đường đi từ thời điểm 1 đến $t$ kết thúc tại trạng thái $j$ và sinh ra các quan sát $o_1, \ldots, o_t$.
+
+\subsubsection{Công thức đệ quy}
+
+\textbf{Khởi tạo (t = 1):}
+\begin{equation}
+V_1(j) = \pi_j \cdot b_j(o_1), \quad \forall j \in \{1, \ldots, N\}
+\end{equation}
+
+Trong miền log:
+\begin{equation}
+\log V_1(j) = \log \pi_j + \log b_j(o_1)
+\end{equation}
+
+\textbf{Đệ quy (t = 2, ..., T):}
+\begin{equation}
+V_t(j) = \max_{i} \left[ V_{t-1}(i) \cdot A_{ij} \right] \cdot b_j(o_t)
+\end{equation}
+
+Trong miền log:
+\begin{equation}
+\log V_t(j) = \max_{i} \left[ \log V_{t-1}(i) + \log A_{ij} \right] + \log b_j(o_t)
+\end{equation}
+
+Đồng thời, lưu lại con trỏ (backpointer) để truy vết ngược:
+\begin{equation}
+\text{Ptr}_t(j) = \arg\max_{i} \left[ \log V_{t-1}(i) + \log A_{ij} \right]
+\end{equation}
+
+\textbf{Kết thúc:}
+Trạng thái cuối cùng có xác suất cao nhất:
+\begin{equation}
+s_T^* = \arg\max_{j} \log V_T(j)
+\end{equation}
+
+\textbf{Truy vết ngược (Backtracking):}
+\begin{equation}
+s_t^* = \text{Ptr}_{t+1}(s_{t+1}^*), \quad t = T-1, T-2, \ldots, 1
+\end{equation}
+
+\subsubsection{Độ phức tạp tính toán}
+\begin{itemize}
+    \item Thời gian: $O(T \times N^2)$ (với $T$ là số frame, $N$ là số trạng thái)
+    \item Không gian: $O(T \times N)$
+\end{itemize}
+
+So với việc liệt kê tất cả đường đi ($O(N^T)$), Viterbi hiệu quả hơn rất nhiều.
+
+\subsubsection{Ví dụ minh hoạ nhỏ}
+Giả sử:
+\begin{itemize}
+    \item 2 trạng thái: C:maj (state 0), G:maj (state 1)
+    \item 3 quan sát: $o_1, o_2, o_3$
+    \item $\pi = [0.7, 0.3]$
+    \item $A = \begin{bmatrix} 0.8 & 0.2 \\ 0.4 & 0.6 \end{bmatrix}$
+    \item Emission probabilities đã biết: $b_0(o_1), b_1(o_1), \ldots$
+\end{itemize}
+
+\textbf{Bước 1 (t=1):}
+\begin{align}
+\log V_1(0) &= \log 0.7 + \log b_0(o_1) \\
+\log V_1(1) &= \log 0.3 + \log b_1(o_1)
+\end{align}
+
+\textbf{Bước 2 (t=2):}
+\begin{align}
+\log V_2(0) &= \max \begin{cases}
+\log V_1(0) + \log 0.8 \\
+\log V_1(1) + \log 0.4
+\end{cases} + \log b_0(o_2) \\
+\log V_2(1) &= \max \begin{cases}
+\log V_1(0) + \log 0.2 \\
+\log V_1(1) + \log 0.6
+\end{cases} + \log b_1(o_2)
+\end{align}
+
+(Tương tự cho $t=3$, sau đó backtrack để tìm chuỗi trạng thái tối ưu)
