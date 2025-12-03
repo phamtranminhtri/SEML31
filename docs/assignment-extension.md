@@ -138,8 +138,38 @@ Therefore, we use **Gaussian Mixture Model (GMM)** to model the probability dist
 
 ## Viterbi Algorithm
 
-(Implementation details will be described in subsequent sections.)
+The HMM model have the model parameter
+$\lambda = (\pi, A, B)$, and observe the observation sequence O, where
 
+  - N - number of hidden states
+  - M - number of observation types
+  - O - observation sequence (T)
+  - $\pi$ - start matrix (N)
+  - A - the transition matrix (NxN)
+  - B - the emission matrix (NxM)
+
+The Viterbi algorithm return the predicted sequence of hidden states and the correspond probability of observing that sequence.
+
+Input: $\lambda = (\pi, A, B)$ and O
+
+Output: 
+- q - the predicted sequence
+
+- P - probability of observing the sequence
+
+Process:
+- Initialization:
+  - $\phi$ (TxN), where $\phi_t(i)$ is the maximum probability of standing at state i at time t from any given previous state.
+  - $\delta$ (TxN), where $\delta_t(i)$ is the previous state that make the probability of standing at state i at time t max.
+  - $\delta_0 = \pi \odot B(O_0)$
+- Iteration:
+  - $F_t = \delta_{t - 1} \odot A.T$
+  - $\phi_t = argmax(F_t, axis = 1)$
+  - $\delta_t = max(T_t, axis = 1) \odot B(O_t)$
+- Track back to get result:
+  - $P = max(\delta_{T - 1})$
+  - $q_{T - 1} = argmax(\delta_{T - 1})$,
+    $q_t = \phi_{t + 1}(q_{t + 1})$
 ---
 
 # Results
