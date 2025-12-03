@@ -136,7 +136,7 @@ Therefore, we use **Gaussian Mixture Model (GMM)** to model the probability dist
 
 ![GMM Output](./image/extension/GMM.png)
 
-## Viterbi Algorithm
+<!-- ## Viterbi Algorithm
 
 The HMM model have the model parameter
 $\lambda = (\pi, A, B)$, and observe the observation sequence O, where
@@ -170,8 +170,9 @@ Process:
   - $P = max(\delta_{T - 1})$
   - $q_{T - 1} = argmax(\delta_{T - 1})$,
     $q_t = \phi_{t + 1}(q_{t + 1})$
----
-
+--- -->
+![Viterbi 1](./image/extension/viterbi1.png)
+![Viterbi 2](./image/extension/viterbi2.png)
 # Results
 Overall Accuracy: 42.77%
 
