@@ -134,26 +134,7 @@ In traditional HMMs, the **emission matrix B** is designed for discrete observat
 
 Therefore, we use **Gaussian Mixture Model (GMM)** to model the probability distribution of features for each chord, replacing the discrete emission matrix.
 
-### GMM Output
-
-Each chord (state) is modeled by a separate GMM:
-
-$$P(x_t | s_i) = \sum_{k=1}^{K} \pi_k \mathcal{N}(x_t | \mu_k, \Sigma_k)$$
-
-Where:
-- $x_t$: feature vector at frame $t$
-- $s_i$: chord state $i$
-- $K$: number of Gaussian components (= 3 in our case)
-- $\pi_k$: mixing coefficient (weight) of component $k$, with $\sum_{k=1}^{K} \pi_k = 1$
-- $\mathcal{N}(x_t | \mu_k, \Sigma_k)$: Gaussian (Normal) distribution with mean $\mu_k$ and covariance $\Sigma_k$
-
-**Explanation:**
-- Each chord is represented as a weighted sum of $K$ Gaussian distributions
-- $\pi_k$ represents the probability that a feature belongs to the $k$-th component
-- $\mathcal{N}$ is the multivariate Gaussian probability density function
-- The GMM can capture multiple modes (peaks) in the feature distribution, corresponding to chord inversions
-
-GMM returns the **log-likelihood** $\log P(x_t | s_i)$ for each frame and each chord, forming a log-emission probability matrix to feed into the **Viterbi algorithm**.
+![GMM Output](./image/extension/GMM.png)
 
 ## Viterbi Algorithm
 
