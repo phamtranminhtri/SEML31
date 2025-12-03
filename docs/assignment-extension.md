@@ -1,7 +1,7 @@
 # Assignment Extension: Chord Recognition
 **Group TN01 - Team SEML31**  
 **Dataset:** [Reference Annotations: The Beatles](http://isophonics.net/content/reference-annotations-beatles)
-> **Colab Notebook:** [Chord_Recognition.ipynb - Colab](https://colab.research.google.com/github/your-repo/Chord_Recognition.ipynb)
+> **Colab Notebook:** [Chord_Recognition.ipynb - Colab](https://colab.research.google.com/drive/1Aln8cKUV86DrpdODOCq5xshaCkAdy1pd?usp=sharing)
 ---
 
 # Introduction
@@ -64,7 +64,7 @@ Corresponding `.lab` files are generated for each audio segment.
 
 ## Most Frequent Chords
 
-![Top 20 Chords](./image/extension/eda-top-20-most-common-chords.png)
+![Top 20 Chords](./image/extension/eda-top-20-most-common-chords_v2.png)
 
 **Audio segment statistics:**
 
@@ -85,28 +85,79 @@ Example: **A_Day_In_The_Life.mp3**
 
 # Feature Extraction
 
+The feature extraction pipeline uses **Librosa** library with a sample rate of **22050 Hz** and hop length of **512 samples** .
+
 ## 1. HPSS (Harmonic/Percussive Source Separation)
 
 Separates harmonic and percussive components to remove drum signals, which do not contribute to chord recognition.
 
 ![HPSS](./image/extension/feature-extraction-hpss.png)
 
-## 2. Chroma CQT & Tonnetz
+## 2. Audio Features
 
-Measures the energy of the 12 pitch classes in each time frame.
+### 2.1. Chroma CQT (12 dimensions)
+Measures the energy of the 12 pitch classes in each time frame using Constant-Q Transform with 48 bins per octave for higher frequency resolution.
 
 ![Chroma CQT](./image/extension/feature-extraction-chroma-sqt.png)
 
+### 2.2. Tonnetz (6 dimensions)
+Tonal Centroid Features representing harmonic relationships between notes in tonal space. Captures tonal context beyond simple pitch content.
+
+### 2.3. Spectral Contrast (7 dimensions)
+Measures the difference in amplitude between peaks and valleys in the spectrum across 6 frequency bands plus the mean. Captures timbral texture and harmonic richness.
+
+### 2.4. Delta Features (25 dimensions each)
+- **Delta** (1st order): Captures temporal dynamics - how features change over time
+- **Delta-Delta** (2nd order): Captures acceleration of feature changes
+
 ## 3. Additional Processing
 
-- Median filtering  
-- Normalization  
+### 3.1. Median Filtering
 
+Applied to all feature matrices (Chroma, Tonnetz, Spectral Contrast) using a **1D median filter** with window size of 3 along the time axis. This technique removes outliers and smooths temporal variations while preserving sharp transitions between chords.
+
+### 3.2. L2 Normalization
+
+Each feature vector is normalized to **unit L2 norm** (Euclidean length = 1).
+This ensures that features are scale-invariant across different audio volume levels, making the model robust to loudness variations in the input audio.
+
+**Total: 12 + 6 + 7 + 25 + 25 = 75 dimensions**
 ---
 
 # HMM Model
 
-(Viterbi algorithm implementation will be described in subsequent sections.)
+## Gaussian Mixture Model (GMM) for Emission Probabilities
+
+### Why GMM?
+
+In traditional HMMs, the **emission matrix B** is designed for discrete observations. However, audio features extracted (Chroma, Tonnetz) are **continuous features**. 
+
+Therefore, we use **Gaussian Mixture Model (GMM)** to model the probability distribution of features for each chord, replacing the discrete emission matrix.
+
+### GMM Output
+
+Each chord (state) is modeled by a separate GMM:
+
+$$P(x_t | s_i) = \sum_{k=1}^{K} \pi_k \mathcal{N}(x_t | \mu_k, \Sigma_k)$$
+
+Where:
+- $x_t$: feature vector at frame $t$
+- $s_i$: chord state $i$
+- $K$: number of Gaussian components (= 3 in our case)
+- $\pi_k$: mixing coefficient (weight) of component $k$, with $\sum_{k=1}^{K} \pi_k = 1$
+- $\mathcal{N}(x_t | \mu_k, \Sigma_k)$: Gaussian (Normal) distribution with mean $\mu_k$ and covariance $\Sigma_k$
+
+**Explanation:**
+- Each chord is represented as a weighted sum of $K$ Gaussian distributions
+- $\pi_k$ represents the probability that a feature belongs to the $k$-th component
+- $\mathcal{N}$ is the multivariate Gaussian probability density function
+- The GMM can capture multiple modes (peaks) in the feature distribution, corresponding to chord inversions
+
+GMM returns the **log-likelihood** $\log P(x_t | s_i)$ for each frame and each chord, forming a log-emission probability matrix to feed into the **Viterbi algorithm**.
+
+## Viterbi Algorithm
+
+(Implementation details will be described in subsequent sections.)
 
 ---
 
