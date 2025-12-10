@@ -64,12 +64,415 @@ We evaluated **30 models** across three categories using Accuracy, Recall, Preci
 
 ## 6. Results & Discussion
 
-![Logistic Regression](./image/Assignment%202/logistic.png)
-![Linear SVC](./image/Assignment%202/SVC.png)
-![Random Forest](./image/Assignment%202/Random_Forest.png)
-![XGBoost](./image/Assignment%202/XGBoost.png)
-![MLP](./image/Assignment%202/MLP.png)
-![Best Models](./image/Assignment%202/Best_models.png)
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-cly1{text-align:left;vertical-align:middle}
+.tg .tg-uzvj{border-color:inherit;font-weight:bold;text-align:center;vertical-align:middle}
+.tg .tg-n863{background-color:#96fffb;text-align:left;vertical-align:middle}
+</style>
+
+### Logistic Regression
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-uzvj">classifier</th>
+    <th class="tg-uzvj">model_config</th>
+    <th class="tg-uzvj">preprocessing</th>
+    <th class="tg-uzvj">accuracy</th>
+    <th class="tg-uzvj">precision</th>
+    <th class="tg-uzvj">recall</th>
+    <th class="tg-uzvj">f1</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">0.5</td>
+    <td class="tg-cly1">tfidf_2500</td>
+    <td class="tg-cly1">0.7721</td>
+    <td class="tg-cly1">0.7911</td>
+    <td class="tg-cly1">0.7635</td>
+    <td class="tg-cly1">0.7771</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">0.5</td>
+    <td class="tg-cly1">tfidf_5000</td>
+    <td class="tg-cly1">0.7760</td>
+    <td class="tg-cly1">0.7941</td>
+    <td class="tg-cly1">0.7678</td>
+    <td class="tg-cly1">0.7807</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">Logistic Regression</td>
+    <td class="tg-n863">0.5</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7834</td>
+    <td class="tg-n863">0.7866</td>
+    <td class="tg-n863">0.7831</td>
+    <td class="tg-n863">0.7848</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">1.0</td>
+    <td class="tg-cly1">tfidf_2500</td>
+    <td class="tg-cly1">0.7728</td>
+    <td class="tg-cly1">0.7925</td>
+    <td class="tg-cly1">0.7639</td>
+    <td class="tg-cly1">0.7779</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">1.0</td>
+    <td class="tg-cly1">tfidf_5000</td>
+    <td class="tg-cly1">0.7778</td>
+    <td class="tg-cly1">0.7957</td>
+    <td class="tg-cly1">0.7695</td>
+    <td class="tg-cly1">0.7824</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">1.0</td>
+    <td class="tg-cly1">bert</td>
+    <td class="tg-cly1">0.7831</td>
+    <td class="tg-cly1">0.7865</td>
+    <td class="tg-cly1">0.7826</td>
+    <td class="tg-cly1">0.7846</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">2.0</td>
+    <td class="tg-cly1">tfidf_2500</td>
+    <td class="tg-cly1">0.7720</td>
+    <td class="tg-cly1">0.7929</td>
+    <td class="tg-cly1">0.7624</td>
+    <td class="tg-cly1">0.7773</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">2.0</td>
+    <td class="tg-cly1">tfidf_5000</td>
+    <td class="tg-cly1">0.7782</td>
+    <td class="tg-cly1">0.7962</td>
+    <td class="tg-cly1">0.7698</td>
+    <td class="tg-cly1">0.7828</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">2.0</td>
+    <td class="tg-cly1">bert</td>
+    <td class="tg-cly1">0.7831</td>
+    <td class="tg-cly1">0.7859</td>
+    <td class="tg-cly1">0.7829</td>
+    <td class="tg-cly1">0.7844</td>
+  </tr>
+</tbody></table>
+
+### Linear SVC
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-uzvj">classifier</th>
+    <th class="tg-uzvj">model_config</th>
+    <th class="tg-uzvj">preprocessing</th>
+    <th class="tg-uzvj">accuracy</th>
+    <th class="tg-uzvj">precision</th>
+    <th class="tg-uzvj">recall</th>
+    <th class="tg-uzvj">f1</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">0.5</td>
+    <td class="tg-cly1">tfidf_2500</td>
+    <td class="tg-cly1">0.7702</td>
+    <td class="tg-cly1">0.7952</td>
+    <td class="tg-cly1">0.7587</td>
+    <td class="tg-cly1">0.7765</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">0.5</td>
+    <td class="tg-cly1">tfidf_5000</td>
+    <td class="tg-cly1">0.7750</td>
+    <td class="tg-cly1">0.7962</td>
+    <td class="tg-cly1">0.7652</td>
+    <td class="tg-cly1">0.7804</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">Linear SVC</td>
+    <td class="tg-n863">0.5</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7839</td>
+    <td class="tg-n863">0.7883</td>
+    <td class="tg-n863">0.7828</td>
+    <td class="tg-n863">0.7856</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">1.0</td>
+    <td class="tg-cly1">tfidf_2500</td>
+    <td class="tg-cly1">0.7692</td>
+    <td class="tg-cly1">0.7943</td>
+    <td class="tg-cly1">0.7577</td>
+    <td class="tg-cly1">0.7755</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">1.0</td>
+    <td class="tg-cly1">tfidf_5000</td>
+    <td class="tg-cly1">0.7724</td>
+    <td class="tg-cly1">0.7931</td>
+    <td class="tg-cly1">0.7630</td>
+    <td class="tg-cly1">0.7778</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">Linear SVC</td>
+    <td class="tg-n863">1.0</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7839</td>
+    <td class="tg-n863">0.7883</td>
+    <td class="tg-n863">0.7828</td>
+    <td class="tg-n863">0.7856</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">2.0</td>
+    <td class="tg-cly1">tfidf_2500</td>
+    <td class="tg-cly1">0.7690</td>
+    <td class="tg-cly1">0.7941</td>
+    <td class="tg-cly1">0.7576</td>
+    <td class="tg-cly1">0.7754</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">2.0</td>
+    <td class="tg-cly1">tfidf_5000</td>
+    <td class="tg-cly1">0.7710</td>
+    <td class="tg-cly1">0.7920</td>
+    <td class="tg-cly1">0.7615</td>
+    <td class="tg-cly1">0.7764</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">Linear SVC</td>
+    <td class="tg-n863">2.0</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7839</td>
+    <td class="tg-n863">0.7884</td>
+    <td class="tg-n863">0.7828</td>
+    <td class="tg-n863">0.7856</td>
+  </tr>
+</tbody></table>
+
+### Random Forest
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-uzvj">classifier</th>
+    <th class="tg-uzvj">model_config</th>
+    <th class="tg-uzvj">preprocessing</th>
+    <th class="tg-uzvj">accuracy</th>
+    <th class="tg-uzvj">precision</th>
+    <th class="tg-uzvj">recall</th>
+    <th class="tg-uzvj">f1</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-cly1">Random Forest</td>
+    <td class="tg-cly1">50.0</td>
+    <td class="tg-cly1">svd_2500</td>
+    <td class="tg-cly1">0.7056</td>
+    <td class="tg-cly1">0.6891</td>
+    <td class="tg-cly1">0.7145</td>
+    <td class="tg-cly1">0.7016</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Random Forest</td>
+    <td class="tg-cly1">50.0</td>
+    <td class="tg-cly1">svd_5000</td>
+    <td class="tg-cly1">0.7087</td>
+    <td class="tg-cly1">0.6867</td>
+    <td class="tg-cly1">0.7202</td>
+    <td class="tg-cly1">0.7030</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Random Forest</td>
+    <td class="tg-cly1">100.0</td>
+    <td class="tg-cly1">svd_2500</td>
+    <td class="tg-cly1">0.7160</td>
+    <td class="tg-cly1">0.7071</td>
+    <td class="tg-cly1">0.7216</td>
+    <td class="tg-cly1">0.7143</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">Random Forest</td>
+    <td class="tg-n863">100.0</td>
+    <td class="tg-n863">svd_5000</td>
+    <td class="tg-n863">0.7191</td>
+    <td class="tg-n863">0.7026</td>
+    <td class="tg-n863">0.7284</td>
+    <td class="tg-n863">0.7152</td>
+  </tr>
+</tbody></table>
+
+### XGBoost
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-uzvj">classifier</th>
+    <th class="tg-uzvj">model_config</th>
+    <th class="tg-uzvj">preprocessing</th>
+    <th class="tg-uzvj">accuracy</th>
+    <th class="tg-uzvj">precision</th>
+    <th class="tg-uzvj">recall</th>
+    <th class="tg-uzvj">f1</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-cly1">XGBoost</td>
+    <td class="tg-cly1">50.0</td>
+    <td class="tg-cly1">svd_2500</td>
+    <td class="tg-cly1">0.7242</td>
+    <td class="tg-cly1">0.7430</td>
+    <td class="tg-cly1">0.7177</td>
+    <td class="tg-cly1">0.7301</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">XGBoost</td>
+    <td class="tg-cly1">50.0</td>
+    <td class="tg-cly1">svd_5000</td>
+    <td class="tg-cly1">0.7282</td>
+    <td class="tg-cly1">0.7383</td>
+    <td class="tg-cly1">0.7253</td>
+    <td class="tg-cly1">0.7318</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">XGBoost</td>
+    <td class="tg-cly1">50.0</td>
+    <td class="tg-cly1">bert</td>
+    <td class="tg-cly1">0.7563</td>
+    <td class="tg-cly1">0.7579</td>
+    <td class="tg-cly1">0.7570</td>
+    <td class="tg-cly1">0.7575</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">XGBoost</td>
+    <td class="tg-cly1">100.0</td>
+    <td class="tg-cly1">svd_2500</td>
+    <td class="tg-cly1">0.7260</td>
+    <td class="tg-cly1">0.7435</td>
+    <td class="tg-cly1">0.7200</td>
+    <td class="tg-cly1">0.7315</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">XGBoost</td>
+    <td class="tg-cly1">100.0</td>
+    <td class="tg-cly1">svd_5000</td>
+    <td class="tg-cly1">0.7314</td>
+    <td class="tg-cly1">0.7432</td>
+    <td class="tg-cly1">0.7277</td>
+    <td class="tg-cly1">0.7354</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">XGBoost</td>
+    <td class="tg-n863">100.0</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7621</td>
+    <td class="tg-n863">0.7621</td>
+    <td class="tg-n863">0.7636</td>
+    <td class="tg-n863">0.7629</td>
+  </tr>
+</tbody></table>
+
+### MLP
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-uzvj">classifier</th>
+    <th class="tg-uzvj">model_config</th>
+    <th class="tg-uzvj">preprocessing</th>
+    <th class="tg-uzvj">accuracy</th>
+    <th class="tg-uzvj">precision</th>
+    <th class="tg-uzvj">recall</th>
+    <th class="tg-uzvj">f1</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-n863">MLP</td>
+    <td class="tg-n863">Dropout + Scheduler + Early Stopping</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7909</td>
+    <td class="tg-n863">0.7738</td>
+    <td class="tg-n863">0.8026</td>
+    <td class="tg-n863">0.7879</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">MLP</td>
+    <td class="tg-cly1">Dropout + Scheduler + Early Stopping</td>
+    <td class="tg-cly1">svd</td>
+    <td class="tg-cly1">0.7437</td>
+    <td class="tg-cly1">0.7524</td>
+    <td class="tg-cly1">0.7411</td>
+    <td class="tg-cly1">0.7467</td>
+  </tr>
+</tbody></table>
+
+### Best Models
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-uzvj">classifier</th>
+    <th class="tg-uzvj">model_config</th>
+    <th class="tg-uzvj">preprocessing</th>
+    <th class="tg-uzvj">accuracy</th>
+    <th class="tg-uzvj">precision</th>
+    <th class="tg-uzvj">recall</th>
+    <th class="tg-uzvj">f1</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-cly1">Logistic Regression</td>
+    <td class="tg-cly1">0.5</td>
+    <td class="tg-cly1">bert</td>
+    <td class="tg-cly1">0.7834</td>
+    <td class="tg-cly1">0.7866</td>
+    <td class="tg-cly1">0.7831</td>
+    <td class="tg-cly1">0.7848</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Linear SVC</td>
+    <td class="tg-cly1">2.0</td>
+    <td class="tg-cly1">bert</td>
+    <td class="tg-cly1">0.7839</td>
+    <td class="tg-cly1">0.7884</td>
+    <td class="tg-cly1">0.7828</td>
+    <td class="tg-cly1">0.7856</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">Random Forest</td>
+    <td class="tg-cly1">100.0</td>
+    <td class="tg-cly1">svd_5000</td>
+    <td class="tg-cly1">0.7191</td>
+    <td class="tg-cly1">0.7026</td>
+    <td class="tg-cly1">0.7284</td>
+    <td class="tg-cly1">0.7152</td>
+  </tr>
+  <tr>
+    <td class="tg-cly1">XGBoost</td>
+    <td class="tg-cly1">100.0</td>
+    <td class="tg-cly1">bert</td>
+    <td class="tg-cly1">0.7621</td>
+    <td class="tg-cly1">0.7621</td>
+    <td class="tg-cly1">0.7636</td>
+    <td class="tg-cly1">0.7629</td>
+  </tr>
+  <tr>
+    <td class="tg-n863">MLP</td>
+    <td class="tg-n863">Dropout + Scheduler + Early Stopping</td>
+    <td class="tg-n863">bert</td>
+    <td class="tg-n863">0.7909</td>
+    <td class="tg-n863">0.7738</td>
+    <td class="tg-n863">0.8026</td>
+    <td class="tg-n863">0.7879</td>
+  </tr>
+</tbody></table>
 
 ## 7. Key Insights
 
